@@ -1,6 +1,7 @@
 local bumpWorld
 local entities
 local bullets
+local switches
 local cameraShake
 local GRAVITY = 0.25
 
@@ -12,6 +13,7 @@ function Entity:new(x, y, width, height)
     self.width = width
     self.height = height
     bumpWorld:add(self, self.x, self.y, self.width, self.height)
+    self.isDestroyed = false
 end
 
 function Entity:getPlayerCollisionType()
@@ -19,7 +21,7 @@ function Entity:getPlayerCollisionType()
 end
 
 function Entity:getBulletCollisionType()
-    return 'slide'
+    return self:getPlayerCollisionType()
 end
 
 function Entity:update()
@@ -32,7 +34,38 @@ end
 
 function Entity:destroy()
     bumpWorld:remove(self, self.y, self.y, self.width, self.height)
+    self.isDestroyed = true
 end
+
+
+local SWITCH_COLORS = {
+    RED = 8,
+}
+
+local Switch = Entity:extend()
+
+function Switch:new(x, y, color)
+    Switch.super.new(self, x, y, 8, 8)
+    self.color = color
+    self.isDisabled = false
+end
+
+function Switch:draw()
+    local colorCode = self.color
+    if self.isDisabled then
+        colorCode = 6
+    end
+    circfill(self.x + 4, self.y + 4, 4, colorCode)
+end
+
+function Switch:getPlayerCollisionType()
+    return 'cross'
+end
+
+function Switch:getBulletCollisionType()
+    return 'cross'
+end
+
 
 local Wall = Entity:extend()
 
@@ -40,8 +73,53 @@ function Wall:draw()
     rectfill(self.x, self.y, self.x + self.width - 1, self.y + self.height - 1, 7)
 end
 
+
+local Fence = Wall:extend()
+
+function Fence:getBulletCollisionType()
+    return nil
+end
+
+function Fence:draw()
+    rectfill(self.x, self.y, self.x + self.width - 1, self.y + self.height - 1, 5)
+end
+
+
+local SwitchWall = Wall:extend()
+
+function SwitchWall:new(x, y, width, height, color)
+    SwitchWall.super.new(self, x, y, width, height)
+    self.color = color
+end
+
+function SwitchWall:isDisabled()
+    for switch in all(switches) do
+        if switch.isDisabled and switch.color == self.color then
+            return true
+        end
+    end
+    return false
+end
+
+function SwitchWall:getPlayerCollisionType()
+    if self:isDisabled() then
+        return nil
+    end
+    return 'slide'
+end
+
+function SwitchWall:draw()
+    if not self:isDisabled() then
+        rectfill(self.x, self.y, self.x + self.width - 1, self.y + self.height - 1, self.color)
+    end
+end
+
+
 local Bullet = Entity:extend()
-Bullet.SPEED = 2
+Bullet.SPEED = 1
+Bullet.MAX_BOUNCES = 4
+Bullet.DEATH_TIMER_MAX = 30
+Bullet.TRAIL_LENGTH = 8
 
 function Bullet:new(x, y, angle)
     Bullet.super.new(self, x, y, 4, 4)
@@ -49,6 +127,12 @@ function Bullet:new(x, y, angle)
     self.velY = sin(angle)
     self.bounces = 0
     self.lastPositions = {}
+    self.deathTimer = 0
+end
+
+function Bullet:destroy()
+    Bullet.super.destroy(self)
+    del(bullets, self)
 end
 
 function Bullet:getPlayerCollisionType()
@@ -65,28 +149,43 @@ function Bullet:getBulletCollisionType()
 end
 
 function Bullet:update()
-    local goalX = self.x + Bullet.SPEED * self.velX
-    local goalY = self.y + Bullet.SPEED * self.velY
-    self.x, self.y, collisions, _ = bumpWorld:move(self, goalX, goalY, self.moveFilter)
-    for _, collision in ipairs(collisions) do
-        if collision.other:is(Wall) then
-            self.bounces = self.bounces + 1
-            if collision.normal.y ~= 0 then
-                self.velY = self.velY * -1
+    if self.bounces < Bullet.MAX_BOUNCES then
+        local goalX = self.x + Bullet.SPEED * self.velX
+        local goalY = self.y + Bullet.SPEED * self.velY
+        self.x, self.y, collisions, _ = bumpWorld:move(self, goalX, goalY, self.moveFilter)
+        for _, collision in ipairs(collisions) do
+            if collision.other:is(Wall) then
+                self.bounces = self.bounces + 1
+                if collision.normal.y ~= 0 then
+                    self.velY = self.velY * -1
+                end
+                if collision.normal.x ~= 0 then
+                    self.velX = self.velX * -1
+                end
             end
-            if collision.normal.x ~= 0 then
-                self.velX = self.velX * -1
+            if collision.other:is(Switch) and not collision.other.isDisabled then
+                collision.other.isDisabled = true
             end
         end
-    end
-    add(self.lastPositions, { x = self.x, y = self.y })
-    while #self.lastPositions > 4 do
-        del(self.lastPositions, self.lastPositions[1])
+        -- Keep track of previous positions for a trail effect, but no more than necessary.
+        add(self.lastPositions, { x = self.x, y = self.y })
+        while #self.lastPositions > Bullet.TRAIL_LENGTH do
+            del(self.lastPositions, self.lastPositions[1])
+        end
+    else
+        self.deathTimer = self.deathTimer + 1
+        if self.deathTimer >= Bullet.DEATH_TIMER_MAX then
+            self:destroy()
+        end
+        -- Keep updating the trail, just don't add anything new.
+        if #self.lastPositions > 0 then
+            del(self.lastPositions, self.lastPositions[1])
+        end
     end
 end
 
 function Bullet:draw()
-    for i=1,4 do
+    for i=1,Bullet.TRAIL_LENGTH,2 do
         if i <= #self.lastPositions then
             local lastPosition = self.lastPositions[#self.lastPositions - i + 1]
             circfill(
@@ -97,12 +196,24 @@ function Bullet:draw()
             )
         end
     end
-    circfill(
-        self.x + 2,
-        self.y + 2,
-        self.width/2,
-        flr(rnd(16))
-    )
+    if self.bounces < Bullet.MAX_BOUNCES then
+        circfill(
+            self.x + 2,
+            self.y + 2,
+            self.width/2,
+            flr(rnd(16))
+        )
+    else
+        for i=1,4 do
+            local angle = i/4 + 0.4 * self.deathTimer/Bullet.DEATH_TIMER_MAX
+            circfill(
+                self.x + 2 + 32 * cos(angle) * self.deathTimer/Bullet.DEATH_TIMER_MAX,
+                self.y + 2 + 32 * sin(angle) * self.deathTimer/Bullet.DEATH_TIMER_MAX,
+                self.width/4,
+                flr(rnd(16))
+            )
+        end
+    end
 end
 
 local Player = Entity:extend()
@@ -113,7 +224,6 @@ function Player:new(x, y)
     self.velY = 0
     self.onGround = false
     self.angle = 0
-    self.changingAngle = false
 end
 
 function Player:moveFilter(other)
@@ -128,11 +238,11 @@ function Player:update()
     local goalX = self.x
     local goalY = self.y
 
-    if self.changingAngle then
+    if btn(5) then
         if btn(0) then
-            self.angle = self.angle + 0.01
+            self.angle = self.angle + 0.005
         elseif btn(1) then
-            self.angle = self.angle - 0.01
+            self.angle = self.angle - 0.005
         end
         self.angle = self.angle % 1
     else
@@ -147,10 +257,6 @@ function Player:update()
         if self.onGround then
             self.velY = -4
         end
-    end
-
-    if btnp(5) then
-        self.changingAngle = not self.changingAngle
     end
 
     if btnp(4) then
@@ -208,21 +314,36 @@ function _init()
     bumpWorld = bump.newWorld(8)
     player = Player(32, 32)
     entities = {}
+    switches = {}
     add(entities, Wall(16, 48, 32, 8))
     add(entities, Wall(8, 80, 80, 8))
-    add(entities, Wall(64, 0, 8, 80))
+    add(entities, Wall(64, 0, 8, 48))
+    add(entities, Wall(0, 0, 128, 8))
+    add(entities, Wall(0, 0, 8, 128))
+    add(entities, Wall(120, 0, 8, 128))
+    add(entities, Wall(0, 120, 128, 8))
+    add(entities, SwitchWall(56, 56, 16, 16, SWITCH_COLORS.RED))
+    add(switches, Switch(16, 16, SWITCH_COLORS.RED))
+    add(entities, Fence(80, 64, 64, 8))
     bullets = {}
     cameraShake = 0
 end
 
-function _update()
+function updateSelf(self)
+    self:update()
+end
+
+function _update60()
     player:update()
-    for entity in all(entities) do
-        entity:update()
-    end
-    for bullet in all(bullets) do
-        bullet:update()
-    end
+    foreach(entities, updateSelf)
+    foreach(switches, updateSelf)
+    foreach(bullets, function(bullet)
+        if bullet.isDestroyed then
+            del(bullets, bullet)
+        else
+            bullet:update()
+        end
+    end)
     if cameraShake > 0 then
         cameraShake = cameraShake - 0.1
     else
@@ -230,15 +351,16 @@ function _update()
     end
 end
 
+function drawSelf(self)
+    self:draw()
+end
+
 function _draw()
     cls()
     camera(cameraShake * (rnd(4) - 2), cameraShake * (rnd(4) - 2))
-    for entity in all(entities) do
-        entity:draw()
-    end
-    for bullet in all(bullets) do
-        bullet:draw()
-    end
+    foreach(entities, drawSelf)
+    foreach(switches, drawSelf)
+    foreach(bullets, drawSelf)
     player:draw()
 end
 -- END MAIN
