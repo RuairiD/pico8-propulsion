@@ -1,5 +1,4 @@
 import sys
-from os import walk
 from xml.etree import ElementTree
 
 
@@ -9,7 +8,8 @@ ENTITY_FORMAT =  "{{ entityType = {entityType}, x = {x}, y = {y}, width = {width
 WALL_FORMAT =  "{{ {x}, {y}, {width}, {height} }}"
 
 LEVELS = {
-    'demo.tmx': 1,
+    1: 'maps/demo.tmx',
+    2: 'maps/demo2.tmx',
 }
 
 def convert_tiles(map_root):
@@ -109,11 +109,10 @@ def convert_walls(map_root):
 
 def main(tmx_directory, levels_filename):
     output = "local LEVELS = {"
-    _, _, tmx_filenames = next(walk(tmx_directory))
 
-    for tmx_filename in tmx_filenames:
-        map_root = ElementTree.parse(tmx_directory + tmx_filename).getroot()
-        output += "[{}] = {{".format(LEVELS[tmx_filename]) + convert_tiles(map_root) + convert_entities(map_root) + convert_walls(map_root) +  "},"
+    for level_number, tmx_filename in LEVELS.items():
+        map_root = ElementTree.parse(tmx_filename).getroot()
+        output += "[{}] = {{".format(level_number) + convert_tiles(map_root) + convert_entities(map_root) + convert_walls(map_root) +  "},"
 
     output = output + "}\n"
 

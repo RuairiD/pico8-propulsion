@@ -45,6 +45,8 @@ end
 
 local SWITCH_COLORS = {
     RED = 8,
+    GREEN = 11,
+    BLUE = 12,
 }
 
 local Switch = Entity:extend()
@@ -109,7 +111,9 @@ function Fence:getBulletCollisionType()
 end
 
 function Fence:draw()
+    fillp(0b0101101001011010.1)
     rectfill(self.x, self.y, self.x + self.width - 1, self.y + self.height - 1, 5)
+    fillp()
 end
 
 
@@ -144,10 +148,12 @@ end
 
 
 local Bullet = Entity:extend()
-Bullet.SPEED = 1
-Bullet.MAX_BOUNCES = 4
-Bullet.DEATH_TIMER_MAX = 30
-Bullet.TRAIL_LENGTH = 8
+-- _ used instead of . to allow these vars to be minified
+Bullet_SPEED = 1
+Bullet_MAX_BOUNCES = 4
+Bullet_DEATH_TIMER_MAX = 30
+Bullet_TRAIL_LENGTH = 32
+Bullet_COLORS = { 8, 9, 10 }
 
 function Bullet:new(x, y, angle)
     Bullet.super.new(self, x, y, 4, 4)
@@ -177,9 +183,9 @@ function Bullet:getBulletCollisionType()
 end
 
 function Bullet:update()
-    if self.bounces < Bullet.MAX_BOUNCES then
-        local goalX = self.x + Bullet.SPEED * self.velX
-        local goalY = self.y + Bullet.SPEED * self.velY
+    if self.bounces < Bullet_MAX_BOUNCES then
+        local goalX = self.x + Bullet_SPEED * self.velX
+        local goalY = self.y + Bullet_SPEED * self.velY
         self.x, self.y, collisions, _ = bumpWorld:move(self, goalX, goalY, self.moveFilter)
         for _, collision in ipairs(collisions) do
             if collision.other:is(Wall) then
@@ -200,12 +206,12 @@ function Bullet:update()
         end
         -- Keep track of previous positions for a trail effect, but no more than necessary.
         add(self.lastPositions, { x = self.x, y = self.y })
-        while #self.lastPositions > Bullet.TRAIL_LENGTH do
+        while #self.lastPositions > Bullet_TRAIL_LENGTH do
             del(self.lastPositions, self.lastPositions[1])
         end
     else
         self.deathTimer = self.deathTimer + 1
-        if self.deathTimer >= Bullet.DEATH_TIMER_MAX then
+        if self.deathTimer >= Bullet_DEATH_TIMER_MAX then
             self:destroy()
         end
         -- Keep updating the trail, just don't add anything new.
@@ -216,32 +222,33 @@ function Bullet:update()
 end
 
 function Bullet:draw()
-    for i=1,Bullet.TRAIL_LENGTH,2 do
-        if i <= #self.lastPositions then
+    for i=1,Bullet_TRAIL_LENGTH,2 do
+        -- rnd() call allows trail to diminish away from the bullet
+        if i <= #self.lastPositions and rnd(Bullet_TRAIL_LENGTH) > i then
             local lastPosition = self.lastPositions[#self.lastPositions - i + 1]
             circfill(
                 lastPosition.x + 2,
                 lastPosition.y + 2,
                 self.width/4,
-                flr(rnd(16))
+                flr(rnd(15)) + 1
             )
         end
     end
-    if self.bounces < Bullet.MAX_BOUNCES then
+    if self.bounces < Bullet_MAX_BOUNCES then
         circfill(
             self.x + 2,
             self.y + 2,
             self.width/2,
-            flr(rnd(16))
+            Bullet_COLORS[flr(rnd(3)) + 1]
         )
     else
         for i=1,4 do
-            local angle = i/4 + 0.4 * self.deathTimer/Bullet.DEATH_TIMER_MAX
+            local angle = i/4 + 0.4 * self.deathTimer/Bullet_DEATH_TIMER_MAX
             circfill(
-                self.x + 2 + 32 * cos(angle) * self.deathTimer/Bullet.DEATH_TIMER_MAX,
-                self.y + 2 + 32 * sin(angle) * self.deathTimer/Bullet.DEATH_TIMER_MAX,
+                self.x + 2 + 32 * cos(angle) * self.deathTimer/Bullet_DEATH_TIMER_MAX,
+                self.y + 2 + 32 * sin(angle) * self.deathTimer/Bullet_DEATH_TIMER_MAX,
                 self.width/4,
-                flr(rnd(16))
+                flr(rnd(15)) + 1
             )
         end
     end
@@ -374,8 +381,8 @@ local function resetLevel(levelNumber)
     switches = {}
     locks = {}
     bullets = {}
-    for y=0, LEVEL_HEIGHT do
-        for x=0, LEVEL_WIDTH do
+    for y=0, LEVEL_HEIGHT - 1 do
+        for x=0, LEVEL_WIDTH - 1 do
             local tileIndex = 2 * (y * LEVEL_WIDTH + x) + 1
             local tile = tonum("0x"..sub(levelData.tiles, tileIndex, tileIndex + 1))
             mset(x, y, tile)
@@ -390,6 +397,8 @@ local function resetLevel(levelNumber)
             add(switches, Switch(entity.x, entity.y, SWITCH_COLORS[entity.props.color]))
         elseif entity.entityType == "SWITCH_WALL" then
             add(entities, SwitchWall(entity.x, entity.y, entity.width, entity.height, SWITCH_COLORS[entity.props.color]))
+        elseif entity.entityType == "FENCE" then
+            add(entities, Fence(entity.x, entity.y, entity.width, entity.height))
         end
     end
     for wall in all(levelData.walls) do
@@ -412,6 +421,9 @@ end
 function _update60()
     if not isLevelComplete() then
         player:update()
+    elseif currentLevel < #LEVELS then
+        currentLevel = currentLevel + 1
+        resetLevel(currentLevel)
     end
     foreach(entities, updateSelf)
     foreach(bullets, function(bullet)
@@ -436,19 +448,26 @@ function drawSelf(self)
     self:draw()
 end
 
+function drawHud()
+    palt(14, true)
+    palt(0, false)
+    spr(35, 8, 14 * 8 + 4)
+    palt(14, false)
+    palt(0, true)
+    print('x'..tostr(player.bullets), 20, 14 * 8 + 6, 5)
+    print('x'..tostr(player.bullets), 20, 14 * 8 + 5, 7)
+end
+
 function _draw()
     cls()
     camera(cameraShake * (rnd(4) - 2), cameraShake * (rnd(4) - 2))
-    map(0, 0, 0, 0)
+    map(0, 0, 0, 0, 16, 16)
     foreach(entities, drawSelf)
     foreach(switches, drawSelf)
     foreach(locks, drawSelf)
     foreach(bullets, drawSelf)
     player:draw()
     camera()
-    print('bullets: '..tostring(player.bullets), 4, 4, 3)
-    if isLevelComplete() then
-        print('level complete', 4, 32, 10)
-    end
+    drawHud()
 end
 -- END MAIN

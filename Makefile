@@ -7,7 +7,8 @@ p8:
 	python tools/tmxtomap.py map.tmx build/map.txt
 	python tools/pngtogfx.py sprites.png build/gfx.txt
 	tail -n +12 audio.p8 > build/audio.txt
-	cat headers/lua_header.txt label.txt build/build.lua headers/gfx_header.txt build/gfx.txt build/map.txt headers/map_header.txt build/audio.txt > build/$(p8_filename)
+	cat headers/lua_header.txt label.txt build/build.lua headers/gfx_header.txt build/gfx.txt headers/map_header.txt build/map.txt build/audio.txt > build/$(p8_filename)
+	rm build/map.txt
 	rm build/gfx.txt
 	rm build/audio.txt
 
