@@ -1,6 +1,7 @@
 local LEVEL_WIDTH = 16
 local LEVEL_HEIGHT = 14
 
+local currentLevel
 local bumpWorld
 local entities
 local bullets
@@ -378,9 +379,6 @@ local function resetLevel(levelNumber)
             local tileIndex = 2 * (y * LEVEL_WIDTH + x) + 1
             local tile = tonum("0x"..sub(levelData.tiles, tileIndex, tileIndex + 1))
             mset(x, y, tile)
-            if isInTable(tile, WALL_TILES) then
-                add(entities, Wall(x * 8, y * 8, 8, 8))
-            end
         end
     end
     for entity in all(levelData.entities) do
@@ -394,13 +392,17 @@ local function resetLevel(levelNumber)
             add(entities, SwitchWall(entity.x, entity.y, entity.width, entity.height, SWITCH_COLORS[entity.props.color]))
         end
     end
+    for wall in all(levelData.walls) do
+        add(entities, Wall(wall[1], wall[2], wall[3], wall[4]))
+    end
 end
 
 function _init()
     -- Disable button repeating
     poke(0x5f5c, 255)
     cameraShake = 0
-    resetLevel(1)
+    currentLevel = 1
+    resetLevel(currentLevel)
 end
 
 function updateSelf(self)
@@ -426,7 +428,7 @@ function _update60()
     end
 
     if #bullets == 0 and player.bullets == 0 then
-        resetLevel()
+        resetLevel(currentLevel)
     end
 end
 

@@ -4,9 +4,10 @@ carts_directory = ~/Library/Application\ Support/pico-8/carts/
 
 .PHONY: p8
 p8:
+	python tools/tmxtomap.py map.tmx build/map.txt
 	python tools/pngtogfx.py sprites.png build/gfx.txt
 	tail -n +12 audio.p8 > build/audio.txt
-	cat headers/lua_header.txt label.txt build/build.lua headers/gfx_header.txt build/gfx.txt headers/map_header.txt build/audio.txt > build/$(p8_filename)
+	cat headers/lua_header.txt label.txt build/build.lua headers/gfx_header.txt build/gfx.txt build/map.txt headers/map_header.txt build/audio.txt > build/$(p8_filename)
 	rm build/gfx.txt
 	rm build/audio.txt
 
@@ -32,7 +33,7 @@ dev:
 .PHONY: lua
 lua:
 	mkdir -p build
-	python tools/tmxtomap.py maps/ build/levels.lua
+	python tools/tmxtolevels.py maps/ build/levels.lua
 	find lib -type f -exec cat {} + > build/deps.lua
 	cat build/levels.lua build/deps.lua main.lua > build/game.lua
 	rm build/deps.lua

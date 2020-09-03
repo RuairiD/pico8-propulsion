@@ -1,17 +1,13 @@
 import sys
-from os import walk
 from xml.etree import ElementTree
 
 
-WIDTH = 16
-HEIGHT = 14
-ENTITY_FORMAT =  "{{ entityType = {entityType}, x = {x}, y = {y}, width = {width}, height = {height}, props = {{ {props} }} }}"
+WIDTH = 128
+HEIGHT = 32
 
-LEVELS = {
-    'demo.tmx': 1,
-}
 
-def convert_tiles(map_root):
+def main(tmx_filename, map_filename):
+    map_root = ElementTree.parse(tmx_filename).getroot()
     map_tiles_text = None
     for child in map_root:
         if child.tag == "layer":
@@ -22,8 +18,7 @@ def convert_tiles(map_root):
         print("Could not find tiles in map file. Is this a Tiled .tmx file?")
         return
 
-    output = "tiles = \""
-    # Start at 1 since maps are 14 high but vertically centered.
+    output = ""
     for y in range(0, HEIGHT):
         lineout = ""
         tiles_line = map_tiles_text.splitlines()[y + 1]
@@ -40,58 +35,11 @@ def convert_tiles(map_root):
             else:
                 lineout += '00'
 
-        output += lineout
+        output += lineout + "\n"
 
-    return output + "\","
-
-
-def convert_entities(map_root):
-    entities_group = None
-    for child in map_root:
-        if child.tag == "objectgroup" and child.attrib["name"] == "entities":
-            entities_group = child
-            break
-
-    if not entities_group:
-        print("Could not find entities in map file. Is this a Tiled .tmx file?")
-        return
-
-    output = "entities = {"
-    for entity in entities_group:
-        props = ""
-        if len(entity):
-            props = "".join([
-                "{name} = \"{value}\",".format(
-                    name=prop.attrib['name'],
-                    value=prop.attrib['value'],
-                )
-                for prop in entity[0]
-            ])
-        lineout = ENTITY_FORMAT.format(
-            entityType='"{}"'.format(entity.attrib['type']),
-            x=entity.attrib['x'],
-            y=entity.attrib['y'],
-            width=entity.attrib['width'],
-            height=entity.attrib['height'],
-            props=props,
-        )
-        output += lineout + ",\n"
-
-    return output + "},"
-
-
-def main(tmx_directory, levels_filename):
-    output = "local LEVELS = {"
-    _, _, tmx_filenames = next(walk(tmx_directory))
-
-    for tmx_filename in tmx_filenames:
-        map_root = ElementTree.parse(tmx_directory + tmx_filename).getroot()
-        output += "[{}] = {{".format(LEVELS[tmx_filename]) + convert_tiles(map_root) + convert_entities(map_root) +  "},"
-
-    output = output + "}\n"
-
-    with open(levels_filename, 'w') as outfile:
+    with open(map_filename, 'w') as outfile:
         outfile.write(output)
+
 
 if __name__ == "__main__":
     main(sys.argv[1], sys.argv[2])
