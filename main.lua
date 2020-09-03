@@ -1,3 +1,6 @@
+local LEVEL_WIDTH = 16
+local LEVEL_HEIGHT = 14
+
 local bumpWorld
 local entities
 local bullets
@@ -94,7 +97,7 @@ end
 local Wall = Entity:extend()
 
 function Wall:draw()
-    rectfill(self.x, self.y, self.x + self.width - 1, self.y + self.height - 1, 7)
+    -- rectfill(self.x, self.y, self.x + self.width - 1, self.y + self.height - 1, 7)
 end
 
 
@@ -345,6 +348,15 @@ local WALL_TILES = {
     18, 19, 20, 21,
 }
 
+local function isInTable(x, xs)
+    for cx in all(xs) do
+        if x == cx then
+            return true
+        end
+    end
+    return false
+end
+
 local function isLevelComplete()
     for lock in all(locks) do
         if not lock.isDisabled then
@@ -354,31 +366,41 @@ local function isLevelComplete()
     return true
 end
 
-local function resetLevel()
+local function resetLevel(levelNumber)
+    local levelData = LEVELS[levelNumber]
     bumpWorld = bump.newWorld(8)
-    player = Player(32, 32, 4)
     entities = {}
     switches = {}
     locks = {}
-    add(entities, Wall(16, 48, 32, 8))
-    add(entities, Wall(8, 80, 80, 8))
-    add(entities, Wall(64, 0, 8, 48))
-    add(entities, Wall(0, 0, 128, 8))
-    add(entities, Wall(0, 0, 8, 128))
-    add(entities, Wall(120, 0, 8, 128))
-    add(entities, Wall(0, 120, 128, 8))
-    add(entities, SwitchWall(56, 56, 16, 16, SWITCH_COLORS.RED))
-    add(switches, Switch(16, 16, SWITCH_COLORS.RED))
-    add(entities, Fence(80, 64, 64, 8))
-    add(locks, Lock(96, 32))
     bullets = {}
+    for y=0, LEVEL_HEIGHT do
+        for x=0, LEVEL_WIDTH do
+            local tileIndex = 2 * (y * LEVEL_WIDTH + x) + 1
+            local tile = tonum("0x"..sub(levelData.tiles, tileIndex, tileIndex + 1))
+            mset(x, y, tile)
+            if isInTable(tile, WALL_TILES) then
+                add(entities, Wall(x * 8, y * 8, 8, 8))
+            end
+        end
+    end
+    for entity in all(levelData.entities) do
+        if entity.entityType == "SPAWN" then
+            player = Player(entity.x, entity.y, 4)
+        elseif entity.entityType == "LOCK" then
+            add(locks, Lock(entity.x, entity.y))
+        elseif entity.entityType == "SWITCH" then
+            add(switches, Switch(entity.x, entity.y, SWITCH_COLORS[entity.props.color]))
+        elseif entity.entityType == "SWITCH_WALL" then
+            add(entities, SwitchWall(entity.x, entity.y, entity.width, entity.height, SWITCH_COLORS[entity.props.color]))
+        end
+    end
 end
 
 function _init()
     -- Disable button repeating
     poke(0x5f5c, 255)
     cameraShake = 0
-    resetLevel()
+    resetLevel(1)
 end
 
 function updateSelf(self)
@@ -415,6 +437,7 @@ end
 function _draw()
     cls()
     camera(cameraShake * (rnd(4) - 2), cameraShake * (rnd(4) - 2))
+    map(0, 0, 0, 0)
     foreach(entities, drawSelf)
     foreach(switches, drawSelf)
     foreach(locks, drawSelf)
