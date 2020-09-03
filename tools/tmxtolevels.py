@@ -8,8 +8,8 @@ ENTITY_FORMAT =  "{{ entityType = {entityType}, x = {x}, y = {y}, width = {width
 WALL_FORMAT =  "{{ {x}, {y}, {width}, {height} }}"
 
 LEVELS = {
-    1: 'maps/demo.tmx',
-    2: 'maps/demo2.tmx',
+    1: 'maps/demo2.tmx',
+    2: 'maps/demo.tmx',
 }
 
 def convert_tiles(map_root):

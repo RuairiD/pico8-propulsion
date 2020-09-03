@@ -1,5 +1,7 @@
 local LEVEL_WIDTH = 16
 local LEVEL_HEIGHT = 14
+local GRAVITY = 0.25
+local LEVEL_TRANSITION_TIMER_MAX = 30
 
 local currentLevel
 local bumpWorld
@@ -8,7 +10,7 @@ local bullets
 local switches
 local cameraShake
 local locks
-local GRAVITY = 0.25
+local levelTransitionTimer
 
 local Entity = Object:extend()
 
@@ -149,7 +151,7 @@ end
 
 local Bullet = Entity:extend()
 -- _ used instead of . to allow these vars to be minified
-Bullet_SPEED = 1
+Bullet_SPEED = 4
 Bullet_MAX_BOUNCES = 4
 Bullet_DEATH_TIMER_MAX = 30
 Bullet_TRAIL_LENGTH = 32
@@ -243,13 +245,15 @@ function Bullet:draw()
         )
     else
         for i=1,4 do
-            local angle = i/4 + 0.4 * self.deathTimer/Bullet_DEATH_TIMER_MAX
-            circfill(
-                self.x + 2 + 32 * cos(angle) * self.deathTimer/Bullet_DEATH_TIMER_MAX,
-                self.y + 2 + 32 * sin(angle) * self.deathTimer/Bullet_DEATH_TIMER_MAX,
-                self.width/4,
-                flr(rnd(15)) + 1
-            )
+            if rnd(Bullet_DEATH_TIMER_MAX) > self.deathTimer then
+                local angle = i/4 + 0.4 * self.deathTimer/Bullet_DEATH_TIMER_MAX
+                circfill(
+                    self.x + 2 + 32 * cos(angle) * self.deathTimer/Bullet_DEATH_TIMER_MAX,
+                    self.y + 2 + 32 * sin(angle) * self.deathTimer/Bullet_DEATH_TIMER_MAX,
+                    self.width/4,
+                    flr(rnd(15)) + 1
+                )
+            end
         end
     end
 end
@@ -410,6 +414,7 @@ function _init()
     -- Disable button repeating
     poke(0x5f5c, 255)
     cameraShake = 0
+    levelTransitionTimer = LEVEL_TRANSITION_TIMER_MAX/2
     currentLevel = 1
     resetLevel(currentLevel)
 end
@@ -421,10 +426,18 @@ end
 function _update60()
     if not isLevelComplete() then
         player:update()
-    elseif currentLevel < #LEVELS then
-        currentLevel = currentLevel + 1
-        resetLevel(currentLevel)
+    elseif currentLevel < #LEVELS  and levelTransitionTimer == 0 then
+        levelTransitionTimer = LEVEL_TRANSITION_TIMER_MAX
     end
+
+    if levelTransitionTimer > 0 then
+        levelTransitionTimer = levelTransitionTimer - 1
+        if levelTransitionTimer == LEVEL_TRANSITION_TIMER_MAX/2 then
+            currentLevel = currentLevel + 1
+            resetLevel(currentLevel)
+        end
+    end
+
     foreach(entities, updateSelf)
     foreach(bullets, function(bullet)
         if bullet.isDestroyed then
@@ -469,5 +482,15 @@ function _draw()
     player:draw()
     camera()
     drawHud()
+
+    if levelTransitionTimer > 0 then
+        local radiusRatio = ((LEVEL_TRANSITION_TIMER_MAX/2) - abs(levelTransitionTimer - LEVEL_TRANSITION_TIMER_MAX/2))/(LEVEL_TRANSITION_TIMER_MAX/2)
+        fillp(0b1000010000100001.1)
+        circfill(64, 64, 160 * radiusRatio, 7)
+        fillp(0b1010010110100101.1)
+        circfill(64, 64, 128 * radiusRatio, 7)
+        fillp(0)
+        circfill(64, 64, 96 * radiusRatio, 7)
+    end
 end
 -- END MAIN
