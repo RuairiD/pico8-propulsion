@@ -3,6 +3,7 @@ local entities
 local bullets
 local switches
 local cameraShake
+local locks
 local GRAVITY = 0.25
 
 local Entity = Object:extend()
@@ -63,6 +64,29 @@ function Switch:getPlayerCollisionType()
 end
 
 function Switch:getBulletCollisionType()
+    return 'cross'
+end
+
+local Lock = Entity:extend()
+
+function Lock:new(x, y)
+    Switch.super.new(self, x, y, 8, 8)
+    self.isDisabled = false
+end
+
+function Lock:draw()
+    local colorCode = 14
+    if self.isDisabled then
+        colorCode = 13
+    end
+    circfill(self.x + 4, self.y + 4, 4, colorCode)
+end
+
+function Lock:getPlayerCollisionType()
+    return 'cross'
+end
+
+function Lock:getBulletCollisionType()
     return 'cross'
 end
 
@@ -166,6 +190,9 @@ function Bullet:update()
             if collision.other:is(Switch) and not collision.other.isDisabled then
                 collision.other.isDisabled = true
             end
+            if collision.other:is(Lock) and not collision.other.isDisabled then
+                collision.other.isDisabled = true
+            end
         end
         -- Keep track of previous positions for a trail effect, but no more than necessary.
         add(self.lastPositions, { x = self.x, y = self.y })
@@ -219,8 +246,9 @@ end
 local Player = Entity:extend()
 Player.SPEED = 1
 
-function Player:new(x, y)
+function Player:new(x, y, bullets)
     Player.super.new(self, x, y, 8, 8)
+    self.bullets = bullets
     self.velY = 0
     self.onGround = false
     self.angle = 0
@@ -259,9 +287,10 @@ function Player:update()
         end
     end
 
-    if btnp(4) then
+    if btnp(4) and self.bullets > 0 then
         add(bullets, Bullet(self.x + 3, self.y + 3, self.angle))
         cameraShake = 1
+        self.bullets = self.bullets - 1
     end
 
     goalY = goalY + self.velY
@@ -295,26 +324,42 @@ function Player:update()
 end
 
 function Player:draw()
+    local colorCode = 12
+    if btn(5) then
+        colorCode = 10
+    end
     rectfill(self.x, self.y, self.x + self.width - 1, self.y + self.height - 1, 4)
     line(
         self.x + 4,
         self.y + 4,
         self.x + 4 + 16 * cos(self.angle),
         self.y + 4 + 16 * sin(self.angle),
-        8
+        colorCode
     )
 end
 
 -- START MAIN
 local player
+local WALL_TILES = {
+    1, 2, 3, 4, 5, 6,
+    18, 19, 20, 21,
+}
 
-function _init()
-    -- Disable button repeating
-    poke(0x5f5c, 255)
+local function isLevelComplete()
+    for lock in all(locks) do
+        if not lock.isDisabled then
+            return false
+        end
+    end
+    return true
+end
+
+local function resetLevel()
     bumpWorld = bump.newWorld(8)
-    player = Player(32, 32)
+    player = Player(32, 32, 4)
     entities = {}
     switches = {}
+    locks = {}
     add(entities, Wall(16, 48, 32, 8))
     add(entities, Wall(8, 80, 80, 8))
     add(entities, Wall(64, 0, 8, 48))
@@ -325,8 +370,15 @@ function _init()
     add(entities, SwitchWall(56, 56, 16, 16, SWITCH_COLORS.RED))
     add(switches, Switch(16, 16, SWITCH_COLORS.RED))
     add(entities, Fence(80, 64, 64, 8))
+    add(locks, Lock(96, 32))
     bullets = {}
+end
+
+function _init()
+    -- Disable button repeating
+    poke(0x5f5c, 255)
     cameraShake = 0
+    resetLevel()
 end
 
 function updateSelf(self)
@@ -334,9 +386,10 @@ function updateSelf(self)
 end
 
 function _update60()
-    player:update()
+    if not isLevelComplete() then
+        player:update()
+    end
     foreach(entities, updateSelf)
-    foreach(switches, updateSelf)
     foreach(bullets, function(bullet)
         if bullet.isDestroyed then
             del(bullets, bullet)
@@ -349,6 +402,10 @@ function _update60()
     else
         cameraShake = 0
     end
+
+    if #bullets == 0 and player.bullets == 0 then
+        resetLevel()
+    end
 end
 
 function drawSelf(self)
@@ -360,7 +417,13 @@ function _draw()
     camera(cameraShake * (rnd(4) - 2), cameraShake * (rnd(4) - 2))
     foreach(entities, drawSelf)
     foreach(switches, drawSelf)
+    foreach(locks, drawSelf)
     foreach(bullets, drawSelf)
     player:draw()
+    camera()
+    print('bullets: '..tostring(player.bullets), 4, 4, 3)
+    if isLevelComplete() then
+        print('level complete', 4, 32, 10)
+    end
 end
 -- END MAIN
