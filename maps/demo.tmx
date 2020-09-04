@@ -1,52 +1,55 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.4" tiledversion="1.4.2" orientation="orthogonal" renderorder="right-down" width="16" height="14" tilewidth="8" tileheight="8" infinite="0" nextlayerid="4" nextobjectid="24">
+<map version="1.4" tiledversion="1.4.2" orientation="orthogonal" renderorder="right-down" width="16" height="14" tilewidth="8" tileheight="8" infinite="0" nextlayerid="4" nextobjectid="27">
  <tileset firstgid="1" source="../sprites.tsx"/>
  <layer id="1" name="tiles" width="16" height="14">
   <data encoding="csv">
-2,2,6,7,2,2,2,6,7,2,2,6,7,2,2,5,
-2,17,17,17,17,17,17,17,17,17,17,17,17,18,18,21,
-2,17,17,17,17,17,17,17,17,17,17,17,17,17,18,2,
-5,17,18,3,4,18,17,17,17,17,17,17,17,17,18,2,
-21,17,18,19,20,17,17,17,17,17,17,6,7,5,2,5,
-2,17,17,18,18,18,17,17,17,3,7,5,3,20,5,21,
-2,17,17,17,17,17,17,6,23,20,6,22,21,3,20,5,
-2,17,17,17,17,17,17,18,18,18,18,21,2,21,6,22,
-3,7,6,55,7,17,17,17,17,17,17,17,17,17,17,21,
-21,17,18,21,3,7,3,7,5,17,17,17,17,17,17,5,
-2,17,18,6,20,6,20,6,54,7,6,7,2,17,17,21,
-2,17,18,18,18,18,18,17,17,17,17,17,17,17,17,5,
-5,17,17,17,17,17,17,17,17,17,17,17,17,17,17,21,
-19,7,2,6,7,2,2,2,2,6,7,2,6,7,6,7
+8,8,12,13,8,8,8,12,13,8,8,12,13,8,8,11,
+8,2,5,2,3,7,42,44,17,17,18,6,7,6,4,27,
+8,3,20,6,20,75,59,17,17,17,17,17,17,18,21,8,
+11,21,5,9,10,17,17,17,17,17,18,2,6,7,2,8,
+27,3,20,25,26,17,17,17,3,7,9,29,13,11,8,11,
+8,21,5,3,7,17,17,6,20,11,27,11,9,26,11,27,
+8,3,20,39,74,17,74,12,29,26,12,28,27,9,26,11,
+8,21,2,21,60,17,58,44,18,6,4,27,8,27,12,28,
+9,13,12,57,13,17,17,17,17,17,19,7,18,6,7,27,
+27,9,13,27,9,13,9,13,11,17,17,17,17,17,2,11,
+12,26,2,12,26,12,26,12,56,13,12,13,8,17,17,27,
+11,21,3,7,42,44,42,44,3,7,5,18,17,17,17,11,
+41,6,20,75,59,75,59,6,20,6,54,7,18,17,18,27,
+25,13,8,12,13,8,8,8,8,12,13,8,12,13,12,13
 </data>
  </layer>
  <objectgroup color="#21ff06" id="3" name="walls">
-  <object id="9" x="0" y="0" width="128" height="8"/>
-  <object id="10" x="120" y="8" width="8" height="104"/>
-  <object id="11" x="0" y="104" width="120" height="8"/>
-  <object id="12" x="0" y="8" width="8" height="96"/>
   <object id="13" x="24" y="24" width="16" height="16"/>
   <object id="15" x="24" y="64" width="16" height="24"/>
   <object id="16" x="40" y="72" width="32" height="16"/>
   <object id="17" x="72" y="80" width="32" height="8"/>
   <object id="18" x="56" y="48" width="32" height="8"/>
   <object id="19" x="72" y="40" width="16" height="8"/>
-  <object id="20" x="88" y="32" width="32" height="32"/>
-  <object id="21" x="8" y="64" width="16" height="8"/>
+  <object id="20" x="88" y="40" width="32" height="24"/>
+  <object id="21" x="8" y="64" width="16" height="16"/>
+  <object id="24" x="80" y="32" width="40" height="8"/>
+  <object id="25" x="0" y="80" width="16" height="8"/>
  </objectgroup>
  <objectgroup id="2" name="entities">
   <object id="1" type="SPAWN" x="16" y="96" width="8" height="8"/>
-  <object id="2" type="LOCK" x="96" y="24" width="8" height="8"/>
-  <object id="3" type="SWITCH" x="8" y="32" width="8" height="8">
+  <object id="2" type="LOCK" x="104" y="16" width="8" height="8"/>
+  <object id="3" type="SWITCH" x="8" y="8" width="8" height="8">
    <properties>
     <property name="color" value="RED"/>
    </properties>
   </object>
-  <object id="4" type="SWITCH_WALL" x="72" y="8" width="8" height="32">
+  <object id="4" type="SWITCH_WALL" x="96" y="8" width="8" height="24">
    <properties>
     <property name="color" value="RED"/>
    </properties>
   </object>
   <object id="22" type="FENCE" x="32" y="40" width="8" height="24"/>
   <object id="23" type="FENCE" x="32" y="8" width="8" height="16"/>
+  <object id="26" type="SIGN" x="40" y="96" width="8" height="8">
+   <properties>
+    <property name="text" value="This is useful advice."/>
+   </properties>
+  </object>
  </objectgroup>
 </map>

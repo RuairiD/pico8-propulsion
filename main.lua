@@ -1,9 +1,11 @@
 local LEVEL_WIDTH = 16
 local LEVEL_HEIGHT = 14
-local GRAVITY = 0.25
-local LEVEL_TRANSITION_TIMER_MAX = 30
+local GRAVITY = 0.125
+local LEVEL_TRANSITION_TIMER_MAX = 60
+local SHOWN_SIGN_TIMER_MAX = 10
 
 local currentLevel
+local nextLevel
 local bumpWorld
 local entities
 local bullets
@@ -11,6 +13,7 @@ local switches
 local cameraShake
 local locks
 local levelTransitionTimer
+local shownSignTimer
 
 local Entity = Object:extend()
 
@@ -62,9 +65,12 @@ end
 function Switch:draw()
     local colorCode = self.color
     if self.isDisabled then
-        colorCode = 6
+        colorCode = 7
     end
+    fillp(0b0101101001011010.1)
     circfill(self.x + 4, self.y + 4, 4, colorCode)
+    fillp()
+    circ(self.x + 4, self.y + 4, 4, self.color)
 end
 
 function Switch:getPlayerCollisionType()
@@ -99,6 +105,34 @@ function Lock:getBulletCollisionType()
 end
 
 
+local Sign = Entity:extend()
+
+function Sign:new(x, y, text)
+    Switch.super.new(self, x, y, 8, 8)
+    self.text = text
+end
+
+function Sign:draw()
+    palt(14, true)
+    palt(0, false)
+    spr(13, self.x, self.y)
+    palt(14, false)
+    palt(0, true)
+    -- Fuzzy screen
+    fillp(flr(rnd(0x8000)))
+    rectfill(self.x + 1, self.y + 1, self.x + 6, self.y + 4, 11)
+    fillp()
+end
+
+function Sign:getPlayerCollisionType()
+    return 'cross'
+end
+
+function Sign:getBulletCollisionType()
+    return nil
+end
+
+
 local Wall = Entity:extend()
 
 function Wall:draw()
@@ -114,7 +148,7 @@ end
 
 function Fence:draw()
     fillp(0b0101101001011010.1)
-    rectfill(self.x, self.y, self.x + self.width - 1, self.y + self.height - 1, 5)
+    rectfill(self.x, self.y, self.x + self.width - 1, self.y + self.height - 1, 6)
     fillp()
 end
 
@@ -144,6 +178,7 @@ end
 
 function SwitchWall:draw()
     if not self:isDisabled() then
+        fillp()
         rectfill(self.x, self.y, self.x + self.width - 1, self.y + self.height - 1, self.color)
     end
 end
@@ -155,7 +190,13 @@ Bullet_SPEED = 4
 Bullet_MAX_BOUNCES = 4
 Bullet_DEATH_TIMER_MAX = 30
 Bullet_TRAIL_LENGTH = 32
-Bullet_COLORS = { 8, 9, 10 }
+Bullet_COLORS = {
+    [0] = { 7, 10 },
+    [1] = { 10, 9 },
+    [2] = { 9, 8 },
+    [3] = { 8, 2 },
+}
+Bullet_MAX_LIFE = (8 * 16/Bullet_SPEED) * Bullet_MAX_BOUNCES + Bullet_DEATH_TIMER_MAX
 
 function Bullet:new(x, y, angle)
     Bullet.super.new(self, x, y, 4, 4)
@@ -164,6 +205,7 @@ function Bullet:new(x, y, angle)
     self.bounces = 0
     self.lastPositions = {}
     self.deathTimer = 0
+    self.timeAlive = 0
 end
 
 function Bullet:destroy()
@@ -221,6 +263,12 @@ function Bullet:update()
             del(self.lastPositions, self.lastPositions[1])
         end
     end
+    -- insurance policy to prevent softlocking
+    -- in case bullet clips through wall or something
+    self.timeAlive = self.timeAlive + 1
+    if self.timeAlive > Bullet_MAX_LIFE then
+        self:destroy()
+    end
 end
 
 function Bullet:draw()
@@ -241,7 +289,7 @@ function Bullet:draw()
             self.x + 2,
             self.y + 2,
             self.width/2,
-            Bullet_COLORS[flr(rnd(3)) + 1]
+            Bullet_COLORS[self.bounces][ceil(rnd(2))]
         )
     else
         for i=1,4 do
@@ -267,6 +315,7 @@ function Player:new(x, y, bullets)
     self.velY = 0
     self.onGround = false
     self.angle = 0
+    self.shownSign = nil
 end
 
 function Player:moveFilter(other)
@@ -298,7 +347,7 @@ function Player:update()
 
     if btnp(2) then
         if self.onGround then
-            self.velY = -4
+            self.velY = -2.5
         end
     end
 
@@ -324,6 +373,7 @@ function Player:update()
     -- Check collisions from player movement. We can ignore the wall collisions (except for
     -- controlling gravity) since bump has already handled them, but coin collisions are
     -- still important.
+    self.shownSign = nil
     for _, collision in ipairs(collisions) do
         if collision.other:is(Wall) then
             -- Player has either landed or bonked wall above.
@@ -334,22 +384,26 @@ function Player:update()
             if collision.normal.y == -1 then
                 self.onGround = true
             end
+        elseif collision.other:is(Sign) then
+            self.shownSign = collision.other
         end
     end
 end
 
+local LINE_LENGTH = 20
 function Player:draw()
-    local colorCode = 12
+    local lineColorCode = 7
     if btn(5) then
-        colorCode = 10
+        lineColorCode = 10
     end
-    rectfill(self.x, self.y, self.x + self.width - 1, self.y + self.height - 1, 4)
+    rectfill(self.x, self.y, self.x + self.width - 1, self.y + self.height - 1, 12)
+    rect(self.x, self.y, self.x + self.width - 1, self.y + self.height - 1, 0)
     line(
-        self.x + 4,
-        self.y + 4,
-        self.x + 4 + 16 * cos(self.angle),
-        self.y + 4 + 16 * sin(self.angle),
-        colorCode
+        self.x + 4 + 2 * cos(self.angle),
+        self.y + 4 + 2 * sin(self.angle),
+        self.x + 4 + LINE_LENGTH * cos(self.angle),
+        self.y + 4 + LINE_LENGTH * sin(self.angle),
+        lineColorCode
     )
 end
 
@@ -403,8 +457,15 @@ local function resetLevel(levelNumber)
             add(entities, SwitchWall(entity.x, entity.y, entity.width, entity.height, SWITCH_COLORS[entity.props.color]))
         elseif entity.entityType == "FENCE" then
             add(entities, Fence(entity.x, entity.y, entity.width, entity.height))
+        elseif entity.entityType == "SIGN" then
+            add(entities, Sign(entity.x, entity.y, entity.props.text))
         end
     end
+    -- Add border walls
+    add(entities, Wall(0, 0, 128, 8))
+    add(entities, Wall(0, 0, 8, 128))
+    add(entities, Wall(0, 104, 128, 8))
+    add(entities, Wall(120, 0, 8, 128))
     for wall in all(levelData.walls) do
         add(entities, Wall(wall[1], wall[2], wall[3], wall[4]))
     end
@@ -414,7 +475,9 @@ function _init()
     -- Disable button repeating
     poke(0x5f5c, 255)
     cameraShake = 0
+    nextLevel = false
     levelTransitionTimer = LEVEL_TRANSITION_TIMER_MAX/2
+    shownSignTimer = 0
     currentLevel = 1
     resetLevel(currentLevel)
 end
@@ -426,16 +489,26 @@ end
 function _update60()
     if not isLevelComplete() then
         player:update()
-    elseif currentLevel < #LEVELS  and levelTransitionTimer == 0 then
+    elseif currentLevel < #LEVELS and levelTransitionTimer == 0 then
         levelTransitionTimer = LEVEL_TRANSITION_TIMER_MAX
+        nextLevel = true
     end
 
     if levelTransitionTimer > 0 then
         levelTransitionTimer = levelTransitionTimer - 1
         if levelTransitionTimer == LEVEL_TRANSITION_TIMER_MAX/2 then
-            currentLevel = currentLevel + 1
+            if nextLevel then
+                currentLevel = currentLevel + 1
+                nextLevel = false
+            end
             resetLevel(currentLevel)
         end
+    end
+
+    if player.shownSign and shownSignTimer < SHOWN_SIGN_TIMER_MAX then
+        shownSignTimer = shownSignTimer + 1
+    elseif not player.shownSign and shownSignTimer > 0 then
+        shownSignTimer = shownSignTimer - 1
     end
 
     foreach(entities, updateSelf)
@@ -446,14 +519,15 @@ function _update60()
             bullet:update()
         end
     end)
+
     if cameraShake > 0 then
         cameraShake = cameraShake - 0.1
     else
         cameraShake = 0
     end
 
-    if #bullets == 0 and player.bullets == 0 then
-        resetLevel(currentLevel)
+    if #bullets == 0 and player.bullets == 0 and levelTransitionTimer == 0 then
+        levelTransitionTimer = LEVEL_TRANSITION_TIMER_MAX
     end
 end
 
@@ -461,14 +535,58 @@ function drawSelf(self)
     self:draw()
 end
 
+
+function drawHudText(text, x, y)
+    print(text, x, y + 1, 5)
+    print(text, x, y, 7)
+end
+
+
 function drawHud()
+    drawHudText('Lev. '..tostr(currentLevel), 8, 14 * 8 + 5)
     palt(14, true)
     palt(0, false)
-    spr(35, 8, 14 * 8 + 4)
+    spr(35, 40, 14 * 8 + 4)
     palt(14, false)
     palt(0, true)
-    print('x'..tostr(player.bullets), 20, 14 * 8 + 6, 5)
-    print('x'..tostr(player.bullets), 20, 14 * 8 + 5, 7)
+    drawHudText('x'..tostr(player.bullets), 52, 14 * 8 + 5)
+
+    clip(0, 14 * 8, 128, 16 * shownSignTimer/SHOWN_SIGN_TIMER_MAX)
+    rectfill(1, 14 * 8 + 1, 126, 16 * 8 - 2, 0)
+    if player.shownSign then
+        -- TODO proper two line text.
+        print(player.shownSign.text, 3, 14 * 8 + 3, 7)
+        print(player.shownSign.text, 3, 14 * 8 + 9, 7)
+    end
+    clip()
+end
+
+function drawTransition()
+    -- Draw concentric circles of different fill gradients to give
+    -- illusion of fading circle edge.
+    if levelTransitionTimer > 0 then
+        local radiusRatio = ((LEVEL_TRANSITION_TIMER_MAX/2) - abs(levelTransitionTimer - LEVEL_TRANSITION_TIMER_MAX/2))/(LEVEL_TRANSITION_TIMER_MAX/2)
+        local radius = 128 * radiusRatio
+        fillp(0b0111111101111111.1)
+        circfill(64, 64, radius, 7)
+        if radius > 8 then
+            fillp(0b1101101111011011.1)
+            circfill(64, 64, radius - 8, 7)
+        end
+        if radius > 16 then
+            fillp(0b0101101001011010.1)
+            circfill(64, 64, radius - 16, 7)
+        end
+        if radius > 24 then
+            fillp(0b0001100000011000.1)
+            circfill(64, 64, radius - 24, 7)
+        end
+        if radius > 32 then
+            fillp()
+            circfill(64, 64, radius - 32, 7)
+        end
+        fillp()
+    end
 end
 
 function _draw()
@@ -482,15 +600,6 @@ function _draw()
     player:draw()
     camera()
     drawHud()
-
-    if levelTransitionTimer > 0 then
-        local radiusRatio = ((LEVEL_TRANSITION_TIMER_MAX/2) - abs(levelTransitionTimer - LEVEL_TRANSITION_TIMER_MAX/2))/(LEVEL_TRANSITION_TIMER_MAX/2)
-        fillp(0b1000010000100001.1)
-        circfill(64, 64, 160 * radiusRatio, 7)
-        fillp(0b1010010110100101.1)
-        circfill(64, 64, 128 * radiusRatio, 7)
-        fillp(0)
-        circfill(64, 64, 96 * radiusRatio, 7)
-    end
+    drawTransition()
 end
 -- END MAIN
