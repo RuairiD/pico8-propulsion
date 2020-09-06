@@ -75,7 +75,7 @@ function Switch:draw()
     if self.isDisabled then
         colorCode = 7
     end
-    fillp(0b0101101001011010.1)
+    fillp('0b0101101001011010.1')
     circfill(self.x + 4, self.y + 4, 4, colorCode)
     fillp()
     circ(self.x + 4, self.y + 4, 4, self.color)
@@ -101,15 +101,15 @@ function Lock:update()
     self.spriteIndex = self.spriteIndex + 1
 end
 
-Lock_ENABLED_SPRITES = {
+Lock.ENABLED_SPRITES = {
     29, 14, 30, 15, 31,
 }
-Lock_DISABLED_SPRITE = 45
+Lock.DISABLED_SPRITE = 45
 function Lock:draw()
     if self.isDisabled then
-        spr(Lock_DISABLED_SPRITE, self.x, self.y)
+        spr(Lock.DISABLED_SPRITE, self.x, self.y)
     else
-        spr(Lock_ENABLED_SPRITES[flr(self.spriteIndex/4) % #Lock_ENABLED_SPRITES + 1], self.x, self.y)
+        spr(Lock.ENABLED_SPRITES[flr(self.spriteIndex/4) % #Lock.ENABLED_SPRITES + 1], self.x, self.y)
     end
 end
 
@@ -164,18 +164,18 @@ function Fence:getBulletCollisionType()
 end
 
 function Fence:draw()
-    fillp(0b0101101001011010.1)
+    fillp('0b0101101001011010.1')
     rectfill(self.x, self.y, self.x + self.width - 1, self.y + self.height - 1, 6)
     fillp()
 end
 
 
 local SwitchWall = Wall:extend()
-SwitchWall_FILL_PATTERNS = {
-    0b1111000000000000.1,
-    0b0000111100000000.1,
-    0b0000000011110000.1,
-    0b0000000000001111.1,
+SwitchWall.FILL_PATTERNS = {
+    '0b1111000000000000.1',
+    '0b0000111100000000.1',
+    '0b0000000011110000.1',
+    '0b0000000000001111.1',
 }
 
 function SwitchWall:new(x, y, width, height, color)
@@ -206,7 +206,7 @@ end
 
 function SwitchWall:draw()
     if not self:isDisabled() then
-        fillp(SwitchWall_FILL_PATTERNS[self.fillPatternIndex % #SwitchWall_FILL_PATTERNS + 1])
+        fillp(SwitchWall.FILL_PATTERNS[self.fillPatternIndex % #SwitchWall.FILL_PATTERNS + 1])
         rectfill(self.x, self.y, self.x + self.width - 1, self.y + self.height - 1, self.color)
         fillp()
     end
@@ -215,17 +215,17 @@ end
 
 local Bullet = Entity:extend()
 -- _ used instead of . to allow these vars to be minified
-Bullet_SPEED = 4
-Bullet_MAX_BOUNCES = 4
-Bullet_DEATH_TIMER_MAX = 30
-Bullet_TRAIL_LENGTH = 32
-Bullet_COLORS = {
+Bullet.SPEED = 3
+Bullet.MAX_BOUNCES = 4
+Bullet.DEATH_TIMER_MAX = 30
+Bullet.TRAIL_LENGTH = 32
+Bullet.COLORS = {
     [0] = { 7, 10 },
     [1] = { 10, 9 },
     [2] = { 9, 8 },
     [3] = { 8, 2 },
 }
-Bullet_MAX_LIFE = (8 * 16/Bullet_SPEED) * Bullet_MAX_BOUNCES + Bullet_DEATH_TIMER_MAX
+Bullet.MAX_LIFE = (8 * 32/Bullet.SPEED) * Bullet.MAX_BOUNCES + Bullet.DEATH_TIMER_MAX
 
 function Bullet:new(x, y, angle)
     Bullet.super.new(self, x, y, 4, 4)
@@ -256,9 +256,9 @@ function Bullet:getBulletCollisionType()
 end
 
 function Bullet:update()
-    if self.bounces < Bullet_MAX_BOUNCES then
-        local goalX = self.x + Bullet_SPEED * self.velX
-        local goalY = self.y + Bullet_SPEED * self.velY
+    if self.bounces < Bullet.MAX_BOUNCES then
+        local goalX = self.x + Bullet.SPEED * self.velX
+        local goalY = self.y + Bullet.SPEED * self.velY
         self.x, self.y, collisions, _ = bumpWorld:move(self, goalX, goalY, self.moveFilter)
         for _, collision in ipairs(collisions) do
             if collision.other:is(Wall) then
@@ -279,12 +279,12 @@ function Bullet:update()
         end
         -- Keep track of previous positions for a trail effect, but no more than necessary.
         add(self.lastPositions, { x = self.x, y = self.y })
-        while #self.lastPositions > Bullet_TRAIL_LENGTH do
+        while #self.lastPositions > Bullet.TRAIL_LENGTH do
             del(self.lastPositions, self.lastPositions[1])
         end
     else
         self.deathTimer = self.deathTimer + 1
-        if self.deathTimer >= Bullet_DEATH_TIMER_MAX then
+        if self.deathTimer >= Bullet.DEATH_TIMER_MAX then
             self:destroy()
         end
         -- Keep updating the trail, just don't add anything new.
@@ -295,15 +295,15 @@ function Bullet:update()
     -- insurance policy to prevent softlocking
     -- in case bullet clips through wall or something
     self.timeAlive = self.timeAlive + 1
-    if self.timeAlive > Bullet_MAX_LIFE then
+    if self.timeAlive > Bullet.MAX_LIFE then
         self:destroy()
     end
 end
 
 function Bullet:draw()
-    for i=1,Bullet_TRAIL_LENGTH,2 do
+    for i=1,Bullet.TRAIL_LENGTH,2 do
         -- rnd() call allows trail to diminish away from the bullet
-        if i <= #self.lastPositions and rnd(Bullet_TRAIL_LENGTH) > i then
+        if i <= #self.lastPositions and rnd(Bullet.TRAIL_LENGTH) > i then
             local lastPosition = self.lastPositions[#self.lastPositions - i + 1]
             circfill(
                 lastPosition.x + 2,
@@ -313,20 +313,20 @@ function Bullet:draw()
             )
         end
     end
-    if self.bounces < Bullet_MAX_BOUNCES then
+    if self.bounces < Bullet.MAX_BOUNCES then
         circfill(
             self.x + 2,
             self.y + 2,
             self.width/2,
-            Bullet_COLORS[self.bounces][ceil(rnd(2))]
+            Bullet.COLORS[self.bounces][ceil(rnd(2))]
         )
     else
         for i=1,4 do
-            if rnd(Bullet_DEATH_TIMER_MAX) > self.deathTimer then
-                local angle = i/4 + 0.4 * self.deathTimer/Bullet_DEATH_TIMER_MAX
+            if rnd(Bullet.DEATH_TIMER_MAX) > self.deathTimer then
+                local angle = i/4 + 0.4 * self.deathTimer/Bullet.DEATH_TIMER_MAX
                 circfill(
-                    self.x + 2 + 32 * cos(angle) * self.deathTimer/Bullet_DEATH_TIMER_MAX,
-                    self.y + 2 + 32 * sin(angle) * self.deathTimer/Bullet_DEATH_TIMER_MAX,
+                    self.x + 2 + 32 * cos(angle) * self.deathTimer/Bullet.DEATH_TIMER_MAX,
+                    self.y + 2 + 32 * sin(angle) * self.deathTimer/Bullet.DEATH_TIMER_MAX,
                     self.width/4,
                     flr(rnd(15)) + 1
                 )
@@ -587,18 +587,18 @@ function drawTransition()
     if levelTransitionTimer > 0 then
         local radiusRatio = ((LEVEL_TRANSITION_TIMER_MAX/2) - abs(levelTransitionTimer - LEVEL_TRANSITION_TIMER_MAX/2))/(LEVEL_TRANSITION_TIMER_MAX/2)
         local radius = 128 * radiusRatio
-        fillp(0b0111111101111111.1)
+        fillp('0b0111111101111111.1')
         circfill(64, 64, radius, 7)
         if radius > 8 then
-            fillp(0b1101101111011011.1)
+            fillp('0b1101101111011011.1')
             circfill(64, 64, radius - 8, 7)
         end
         if radius > 16 then
-            fillp(0b0101101001011010.1)
+            fillp('0b0101101001011010.1')
             circfill(64, 64, radius - 16, 7)
         end
         if radius > 24 then
-            fillp(0b0001100000011000.1)
+            fillp('0b0001100000011000.1')
             circfill(64, 64, radius - 24, 7)
         end
         if radius > 32 then
@@ -613,6 +613,11 @@ function drawGame()
     cls()
     camera(cameraShake * (rnd(4) - 2), cameraShake * (rnd(4) - 2))
     map(0, 0, 0, 0, 16, 16)
+    -- special case to superimpose arrows on level for first level
+    if currentLevel == 1 then
+        print('\x8b', 2 * 8 - 3, 12 * 8 + 1, 7)
+        print('\x91', 4 * 8 + 5, 12 * 8 + 1, 7)
+    end
     foreach(entities, drawSelf)
     foreach(switches, drawSelf)
     foreach(locks, drawSelf)
@@ -701,9 +706,9 @@ function _update60()
         updateGame()
     elseif state == STATES.TITLE then
         updateTitle()
-        titleTimer = titleTimer + 1
     end
 
+    titleTimer = titleTimer + 1
     if titleTimer > TITLE_TIMER_MAX and levelTransitionTimer > 0 then
         levelTransitionTimer = levelTransitionTimer - 1
         if levelTransitionTimer == LEVEL_TRANSITION_TIMER_MAX/2 then

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.4" tiledversion="1.4.2" orientation="orthogonal" renderorder="right-down" width="16" height="14" tilewidth="8" tileheight="8" infinite="0" nextlayerid="4" nextobjectid="29">
+ <tileset firstgid="1" source="../sprites.tsx"/>
+ <layer id="1" name="tiles" width="16" height="14">
+  <data encoding="csv">
+11,12,57,13,12,57,13,12,13,12,10,9,10,12,56,13,
+25,10,27,9,13,27,5,6,55,7,41,25,26,12,29,10,
+11,27,12,26,12,13,38,7,21,5,27,11,12,10,11,27,
+40,13,12,29,10,11,21,74,17,39,11,25,10,41,25,10,
+27,12,57,13,27,41,42,59,17,39,40,13,27,27,11,27,
+11,11,27,11,12,26,60,17,17,21,27,12,57,13,25,10,
+27,41,11,25,10,11,17,17,17,74,9,13,27,11,11,27,
+12,26,25,10,27,41,17,17,75,92,41,12,29,26,40,13,
+9,29,13,27,12,26,17,17,74,60,27,11,9,13,27,11,
+27,3,23,7,17,17,17,17,77,44,12,28,41,12,29,26,
+11,21,5,17,17,17,17,17,60,5,11,27,27,12,57,13,
+27,3,20,75,43,17,17,3,7,39,25,10,9,13,27,11,
+11,21,6,7,58,44,6,20,6,20,11,27,41,12,29,26,
+25,29,13,12,13,8,12,57,13,12,56,13,27,12,57,13
+</data>
+ </layer>
+ <objectgroup color="#21ff06" id="3" name="walls" visible="0">
+  <object id="27" x="8" y="8" width="40" height="64"/>
+  <object id="28" x="80" y="8" width="40" height="96"/>
+ </objectgroup>
+ <objectgroup id="2" name="entities">
+  <object id="1" type="SPAWN" x="24" y="96" width="8" height="8"/>
+  <object id="2" type="LOCK" x="60" y="12" width="8" height="8"/>
+  <object id="26" type="SIGN" x="60" y="96" width="8" height="8">
+   <properties>
+    <property name="text1" value="hold\x97 + press\x8b\x91 to adjust"/>
+    <property name="text2" value="shooting angle. \x8e to shoot!"/>
+   </properties>
+  </object>
+ </objectgroup>
+</map>
