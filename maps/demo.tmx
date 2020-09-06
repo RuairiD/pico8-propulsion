@@ -33,8 +33,8 @@
  </objectgroup>
  <objectgroup id="2" name="entities">
   <object id="1" type="SPAWN" x="16" y="96" width="8" height="8"/>
-  <object id="2" type="LOCK" x="104" y="16" width="8" height="8"/>
-  <object id="3" type="SWITCH" x="8" y="8" width="8" height="8">
+  <object id="2" type="LOCK" x="108" y="16" width="8" height="8"/>
+  <object id="3" type="SWITCH" x="12" y="12" width="8" height="8">
    <properties>
     <property name="color" value="RED"/>
    </properties>
@@ -48,7 +48,8 @@
   <object id="23" type="FENCE" x="32" y="8" width="8" height="16"/>
   <object id="26" type="SIGN" x="40" y="96" width="8" height="8">
    <properties>
-    <property name="text" value="This is useful advice."/>
+    <property name="text1" value="Top line of text, very nice."/>
+    <property name="text2" value="Second line of text, almost as nice."/>
    </properties>
   </object>
  </objectgroup>

@@ -3,9 +3,9 @@ local LEVEL_HEIGHT = 14
 local GRAVITY = 0.125
 local LEVEL_TRANSITION_TIMER_MAX = 60
 local SHOWN_SIGN_TIMER_MAX = 10
+local TITLE_TIMER_MAX = 120
 
 local currentLevel
-local nextLevel
 local bumpWorld
 local entities
 local bullets
@@ -14,6 +14,14 @@ local cameraShake
 local locks
 local levelTransitionTimer
 local shownSignTimer
+local levelTransitionCallback
+local titleTimer
+
+local STATES = {
+    TITLE = 'TITLE',
+    GAME = 'GAME',
+}
+local state
 
 local Entity = Object:extend()
 
@@ -86,14 +94,23 @@ local Lock = Entity:extend()
 function Lock:new(x, y)
     Switch.super.new(self, x, y, 8, 8)
     self.isDisabled = false
+    self.spriteIndex = 0
 end
 
+function Lock:update()
+    self.spriteIndex = self.spriteIndex + 1
+end
+
+Lock_ENABLED_SPRITES = {
+    29, 14, 30, 15, 31,
+}
+Lock_DISABLED_SPRITE = 45
 function Lock:draw()
-    local colorCode = 14
     if self.isDisabled then
-        colorCode = 13
+        spr(Lock_DISABLED_SPRITE, self.x, self.y)
+    else
+        spr(Lock_ENABLED_SPRITES[flr(self.spriteIndex/4) % #Lock_ENABLED_SPRITES + 1], self.x, self.y)
     end
-    circfill(self.x + 4, self.y + 4, 4, colorCode)
 end
 
 function Lock:getPlayerCollisionType()
@@ -154,10 +171,21 @@ end
 
 
 local SwitchWall = Wall:extend()
+SwitchWall_FILL_PATTERNS = {
+    0b1111000000000000.1,
+    0b0000111100000000.1,
+    0b0000000011110000.1,
+    0b0000000000001111.1,
+}
 
 function SwitchWall:new(x, y, width, height, color)
     SwitchWall.super.new(self, x, y, width, height)
     self.color = color
+    self.fillPatternIndex = 0
+end
+
+function SwitchWall:update()
+    self.fillPatternIndex = self.fillPatternIndex + 1
 end
 
 function SwitchWall:isDisabled()
@@ -178,8 +206,9 @@ end
 
 function SwitchWall:draw()
     if not self:isDisabled() then
-        fillp()
+        fillp(SwitchWall_FILL_PATTERNS[self.fillPatternIndex % #SwitchWall_FILL_PATTERNS + 1])
         rectfill(self.x, self.y, self.x + self.width - 1, self.y + self.height - 1, self.color)
+        fillp()
     end
 end
 
@@ -458,7 +487,10 @@ local function resetLevel(levelNumber)
         elseif entity.entityType == "FENCE" then
             add(entities, Fence(entity.x, entity.y, entity.width, entity.height))
         elseif entity.entityType == "SIGN" then
-            add(entities, Sign(entity.x, entity.y, entity.props.text))
+            add(entities, Sign(
+                entity.x, entity.y,
+                { entity.props.text1, entity.props.text2 }
+            ))
         end
     end
     -- Add border walls
@@ -471,12 +503,8 @@ local function resetLevel(levelNumber)
     end
 end
 
-function _init()
-    -- Disable button repeating
-    poke(0x5f5c, 255)
+function initGame()
     cameraShake = 0
-    nextLevel = false
-    levelTransitionTimer = LEVEL_TRANSITION_TIMER_MAX/2
     shownSignTimer = 0
     currentLevel = 1
     resetLevel(currentLevel)
@@ -486,23 +514,14 @@ function updateSelf(self)
     self:update()
 end
 
-function _update60()
+function updateGame()
     if not isLevelComplete() then
         player:update()
     elseif currentLevel < #LEVELS and levelTransitionTimer == 0 then
         levelTransitionTimer = LEVEL_TRANSITION_TIMER_MAX
-        nextLevel = true
-    end
-
-    if levelTransitionTimer > 0 then
-        levelTransitionTimer = levelTransitionTimer - 1
-        if levelTransitionTimer == LEVEL_TRANSITION_TIMER_MAX/2 then
-            if nextLevel then
-                currentLevel = currentLevel + 1
-                nextLevel = false
-            end
-            resetLevel(currentLevel)
-        end
+        levelTransitionCallback = (function ()
+            currentLevel = currentLevel + 1
+        end)
     end
 
     if player.shownSign and shownSignTimer < SHOWN_SIGN_TIMER_MAX then
@@ -511,6 +530,7 @@ function _update60()
         shownSignTimer = shownSignTimer - 1
     end
 
+    foreach(locks, updateSelf)
     foreach(entities, updateSelf)
     foreach(bullets, function(bullet)
         if bullet.isDestroyed then
@@ -555,8 +575,8 @@ function drawHud()
     rectfill(1, 14 * 8 + 1, 126, 16 * 8 - 2, 0)
     if player.shownSign then
         -- TODO proper two line text.
-        print(player.shownSign.text, 3, 14 * 8 + 3, 7)
-        print(player.shownSign.text, 3, 14 * 8 + 9, 7)
+        print(player.shownSign.text[1], 3, 14 * 8 + 3, 7)
+        print(player.shownSign.text[2], 3, 14 * 8 + 9, 7)
     end
     clip()
 end
@@ -589,7 +609,7 @@ function drawTransition()
     end
 end
 
-function _draw()
+function drawGame()
     cls()
     camera(cameraShake * (rnd(4) - 2), cameraShake * (rnd(4) - 2))
     map(0, 0, 0, 0, 16, 16)
@@ -600,6 +620,120 @@ function _draw()
     player:draw()
     camera()
     drawHud()
+end
+
+function initTitle()
+    bumpWorld = bump.newWorld(8)
+    entities = {}
+    bullets = {}
+    add(entities, Wall(-32, -32, 8, 192))
+    add(entities, Wall(-32, -32, 192, 8))
+    add(entities, Wall(160, -32, 8, 192))
+    add(entities, Wall(160, 160, 192, 8))
+    add(entities, Wall(24, 48, 80, 32))
+end
+
+function updateTitle()
+    if btnp(5) then
+        levelTransitionTimer = LEVEL_TRANSITION_TIMER_MAX
+        levelTransitionCallback = (function ()
+            state = STATES.GAME
+            initGame()
+        end)
+    end
+    if rnd() < 0.01 then
+        local side = rnd()
+        local bulletX, bulletY
+        if side < 0.25 then
+            -- left
+            bulletX = -16
+            bulletY = -16 + rnd(160)
+        elseif side < 0.5 then
+            -- right
+            bulletX = 144
+            bulletY = -16 + rnd(160)
+        elseif side < 0.75 then
+            -- top
+            bulletX = -16 + rnd(160)
+            bulletY = -16
+        else
+            --bottom
+            bulletX = -16 + rnd(160)
+            bulletY = 144
+        end
+        add(bullets, Bullet(bulletX, bulletY, rnd()))
+    end
+    foreach(bullets, function(bullet)
+        if bullet.isDestroyed then
+            del(bullets, bullet)
+        else
+            bullet:update()
+        end
+    end)
+end
+
+local pressStartText = 'press \x97 to play'
+local pressStartColors = { 0, 5, 6, 7, 6, 5, 0 }
+function drawTitle()
+    cls()
+    map(0, 16, 0, 0, 16, 16)
+    spr(80, 24, 6.5 * 8, 10, 3)
+    foreach(bullets, drawSelf)
+    foreach(entities, drawSelf)
+
+    local textColor = pressStartColors[flr(titleTimer/8) % #pressStartColors + 1]
+    print(pressStartText, (128 - #pressStartText * 4)/2, 11 * 8, textColor)
+end
+
+function _init()
+    -- Disable button repeating
+    poke(0x5f5c, 255)
+
+    titleTimer = 0
+    levelTransitionTimer = LEVEL_TRANSITION_TIMER_MAX/2
+
+    state = STATES.TITLE
+    initTitle()
+end
+
+function _update60()
+    if state == STATES.GAME then
+        updateGame()
+    elseif state == STATES.TITLE then
+        updateTitle()
+        titleTimer = titleTimer + 1
+    end
+
+    if titleTimer > TITLE_TIMER_MAX and levelTransitionTimer > 0 then
+        levelTransitionTimer = levelTransitionTimer - 1
+        if levelTransitionTimer == LEVEL_TRANSITION_TIMER_MAX/2 then
+            if levelTransitionCallback then
+                levelTransitionCallback()
+                levelTransitionCallback = nil
+            end
+            resetLevel(currentLevel)
+        end
+    end
+end
+
+function _draw()
+    if state == STATES.GAME then
+        drawGame()
+    elseif state == STATES.TITLE then
+        drawTitle()
+    end
     drawTransition()
+
+    if titleTimer < TITLE_TIMER_MAX then
+        local textColor = 0
+        if titleTimer > TITLE_TIMER_MAX - 16 or titleTimer < 8 then
+            textColor = 7
+        elseif titleTimer > TITLE_TIMER_MAX - 20 or titleTimer < 12 then
+            textColor = 6
+        elseif titleTimer > TITLE_TIMER_MAX - 24 or titleTimer < 16 then
+            textColor = 5
+        end
+        print('ruairidx', 50, 61, textColor)
+    end
 end
 -- END MAIN
