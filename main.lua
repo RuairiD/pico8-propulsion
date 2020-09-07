@@ -505,21 +505,23 @@ local function resetLevel(levelNumber)
             mset(x, y, tile)
         end
     end
-    for entity in all(levelData.entities) do
-        if entity.entityType == "SPAWN" then
-            player = Player(entity.x, entity.y, levelData.maxBullets)
-        elseif entity.entityType == "LOCK" then
-            add(locks, Lock(entity.x, entity.y))
-        elseif entity.entityType == "SWITCH" then
-            add(switches, Switch(entity.x, entity.y, SWITCH_COLORS[entity.props.color]))
-        elseif entity.entityType == "SWITCH_WALL" then
-            add(entities, SwitchWall(entity.x, entity.y, entity.width, entity.height, SWITCH_COLORS[entity.props.color]))
-        elseif entity.entityType == "FENCE" then
-            add(entities, Fence(entity.x, entity.y, entity.width, entity.height))
-        elseif entity.entityType == "SIGN" then
+    local entitiesData = levelData.entities
+    for i=1,#levelData.entities - 1,6 do
+        local x, y, width, height, props = entitiesData[i + 1], entitiesData[i + 2], entitiesData[i + 3], entitiesData[i + 4], entitiesData[i + 5]
+        if entitiesData[i] == "SPAWN" then
+            player = Player(entitiesData[i + 1], y, levelData.maxBullets)
+        elseif entitiesData[i] == "LOCK" then
+            add(locks, Lock(x, y))
+        elseif entitiesData[i] == "SWITCH" then
+            add(switches, Switch(x, y, SWITCH_COLORS[props.color]))
+        elseif entitiesData[i] == "SWITCH_WALL" then
+            add(entities, SwitchWall(x, y, width, height, SWITCH_COLORS[props.color]))
+        elseif entitiesData[i] == "FENCE" then
+            add(entities, Fence(x, y, width, height))
+        elseif entitiesData[i] == "SIGN" then
             add(entities, Sign(
-                entity.x, entity.y,
-                { entity.props.text1, entity.props.text2 }
+                x, y,
+                { props.text1, props.text2 }
             ))
         end
     end
@@ -528,8 +530,15 @@ local function resetLevel(levelNumber)
     add(entities, Wall(0, 0, 8, 128))
     add(entities, Wall(0, 104, 128, 8))
     add(entities, Wall(120, 0, 8, 128))
-    for wall in all(levelData.walls) do
-        add(entities, Wall(wall[1], wall[2], wall[3], wall[4]))
+    local wallDimensions = split(levelData.walls)
+    -- #wallDimensions - 1 to account for trailing comma
+    for i=1,#wallDimensions - 1,4 do
+        add(entities, Wall(
+            tonum(wallDimensions[i]),
+            tonum(wallDimensions[i + 1]),
+            tonum(wallDimensions[i + 2]),
+            tonum(wallDimensions[i + 3])
+        ))
     end
 end
 

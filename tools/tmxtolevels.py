@@ -4,8 +4,8 @@ from xml.etree import ElementTree
 
 WIDTH = 16
 HEIGHT = 14
-ENTITY_FORMAT =  "{{ entityType = {entityType}, x = {x}, y = {y}, width = {width}, height = {height}, props = {{ {props} }} }}"
-WALL_FORMAT =  "{{ {x}, {y}, {width}, {height} }}"
+ENTITY_FORMAT =  "{entityType}, {x}, {y}, {width}, {height}, {{ {props} }}"
+WALL_FORMAT =  "{x}, {y}, {width}, {height}"
 
 LEVELS = {
     1: 'maps/level1.tmx',
@@ -14,6 +14,36 @@ LEVELS = {
     4: 'maps/level4.tmx',
     5: 'maps/demo2.tmx',
     6: 'maps/demo.tmx',
+    7: 'maps/level1.tmx',
+    8: 'maps/level2.tmx',
+    9: 'maps/level3.tmx',
+    10: 'maps/level4.tmx',
+    11: 'maps/demo2.tmx',
+    12: 'maps/demo.tmx',
+    13: 'maps/level1.tmx',
+    14: 'maps/level2.tmx',
+    15: 'maps/level3.tmx',
+    16: 'maps/level4.tmx',
+    17: 'maps/demo2.tmx',
+    18: 'maps/demo.tmx',
+    19: 'maps/level1.tmx',
+    20: 'maps/level2.tmx',
+    21: 'maps/level3.tmx',
+    22: 'maps/level4.tmx',
+    23: 'maps/demo2.tmx',
+    24: 'maps/demo.tmx',
+    25: 'maps/level1.tmx',
+    26: 'maps/level2.tmx',
+    27: 'maps/level3.tmx',
+    28: 'maps/level4.tmx',
+    29: 'maps/demo2.tmx',
+    30: 'maps/demo.tmx',
+    31: 'maps/level1.tmx',
+    32: 'maps/level2.tmx',
+    33: 'maps/level3.tmx',
+    34: 'maps/level4.tmx',
+    35: 'maps/demo2.tmx',
+    36: 'maps/demo.tmx',
 }
 
 def convert_tiles(map_root):
@@ -96,7 +126,7 @@ def convert_walls(map_root):
         print("Could not find walls in map file. Is this a Tiled .tmx file?")
         return
 
-    output = "walls = {"
+    output = "walls = '"
     for wall in walls_group:
         props = ""
         # List instead of dict to save tokens
@@ -106,9 +136,9 @@ def convert_walls(map_root):
             width=wall.attrib['width'],
             height=wall.attrib['height'],
         )
-        output += lineout + ",\n"
+        output += lineout + ","
 
-    return output + "},"
+    return output + "',"
 
 
 def get_bullet_numbers(map_root):

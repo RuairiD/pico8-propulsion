@@ -1,32 +1,4 @@
-local bump = {
-    _VERSION     = 'bump v3.1.7-pico8',
-    _URL         = 'https://github.com/RuairiD/pico8-bump.lua',
-    _DESCRIPTION = 'A collision detection library for Lua, adapted for PICO-8',
-    _LICENSE     = [[
-        MIT LICENSE
-
-        Copyright (c) 2014 Enrique García Cota
-
-        Permission is hereby granted, free of charge, to any person obtaining a
-        copy of this software and associated documentation files (the
-        "Software"), to deal in the Software without restriction, including
-        without limitation the rights to use, copy, modify, merge, publish,
-        distribute, sublicense, and/or sell copies of the Software, and to
-        permit persons to whom the Software is furnished to do so, subject to
-        the following conditions:
-
-        The above copyright notice and this permission notice shall be included
-        in all copies or substantial portions of the Software.
-
-        THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-        OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-        MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-        IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-        CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-        TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-        SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-    ]]
-}
+local bump = {}
 
 ------------------------------------------
 -- Auxiliary functions
@@ -117,11 +89,6 @@ end
 local function rect_containsPoint(x,y,w,h, px,py)
     return px - x > DELTA      and py - y > DELTA and
                     x + w - px > DELTA  and y + h - py > DELTA
-end
-
-local function rect_isIntersecting(x1,y1,w1,h1, x2,y2,w2,h2)
-    return x1 < x2+w2 and x2 < x1+w1 and
-                    y1 < y2+h2 and y2 < y1+h1
 end
 
 local function rect_getSquareDistance(x1,y1,w1,h1, x2,y2,w2,h2)
@@ -454,50 +421,6 @@ function World:toCell(x,y)
     return grid_toCell(self.cellSize, x, y)
 end
 
-
---- Query methods
-
-function World:queryRect(x,y,w,h, filter)
-    local cl,ct,cw,ch = grid_toCellRect(self.cellSize, x,y,w,h)
-    local dictItemsInCellRect = getDictItemsInCellRect(self, cl,ct,cw,ch)
-
-    local items, len = {}, 0
-
-    local rect
-    for item,_ in pairs(dictItemsInCellRect) do
-        rect = self.rects[item]
-        if (not filter or filter(item))
-        and rect_isIntersecting(x,y,w,h, rect.x, rect.y, rect.w, rect.h)
-        then
-            len = len + 1
-            items[len] = item
-        end
-    end
-
-    return items, len
-end
-
-function World:queryPoint(x,y, filter)
-    local cx,cy = self:toCell(x,y)
-    local dictItemsInCellRect = getDictItemsInCellRect(self, cx,cy,1,1)
-
-    local items, len = {}, 0
-
-    local rect
-    for item,_ in pairs(dictItemsInCellRect) do
-        rect = self.rects[item]
-        if (not filter or filter(item))
-        and rect_containsPoint(rect.x, rect.y, rect.w, rect.h, x, y)
-        then
-            len = len + 1
-            items[len] = item
-        end
-    end
-
-    return items, len
-end
-
-
 --- Main methods
 
 function World:add(item, x,y,w,h)
@@ -629,10 +552,8 @@ bump.newWorld = function(cellSize)
         responses = {}
     }, World_mt)
 
-    world:addResponse('touch', touch)
     world:addResponse('cross', cross)
     world:addResponse('slide', slide)
-    world:addResponse('bounce', bounce)
 
     return world
 end
