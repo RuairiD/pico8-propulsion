@@ -3,6 +3,10 @@
  <editorsettings>
   <export target="." format="json"/>
  </editorsettings>
+ <properties>
+  <property name="maxBullets" type="int" value="3"/>
+  <property name="medalBullets" type="int" value="2"/>
+ </properties>
  <tileset firstgid="1" source="../sprites.tsx"/>
  <layer id="1" name="tiles" width="16" height="14">
   <data encoding="csv">

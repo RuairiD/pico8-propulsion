@@ -4,6 +4,7 @@ local GRAVITY = 0.125
 local LEVEL_TRANSITION_TIMER_MAX = 60
 local SHOWN_SIGN_TIMER_MAX = 10
 local TITLE_TIMER_MAX = 120
+local LEVEL_COMPLETE_TIMER_MAX = 30
 
 local currentLevel
 local bumpWorld
@@ -16,12 +17,36 @@ local levelTransitionTimer
 local shownSignTimer
 local levelTransitionCallback
 local titleTimer
+local levelCompleteTimer
 
 local STATES = {
     TITLE = 'TITLE',
     GAME = 'GAME',
+    SELECT = 'SELECT',
 }
 local state
+
+local function printCentre(text, y, color)
+    print(text, (128 - #text * 4)/2, y, color)
+end
+
+local function loadLevelProgress(levelNumber)
+    local data = dget(levelNumber - 1)
+    local isComplete = (data & 1) == 1
+    local hasMedal = (data & 2) == 2
+    return isComplete, hasMedal
+end
+
+local function saveLevelProgress(levelNumber, isComplete, hasMedal)
+    local data = 0
+    if isComplete then
+        data = data | 1
+    end
+    if hasMedal then
+        data = data | 2
+    end
+    dset(levelNumber - 1, data)
+end
 
 local Entity = Object:extend()
 
@@ -343,7 +368,8 @@ function Player:new(x, y, bullets)
     self.bullets = bullets
     self.velY = 0
     self.onGround = false
-    self.angle = 0
+    -- point up to start
+    self.angle = 0.25
     self.shownSign = nil
 end
 
@@ -461,6 +487,10 @@ local function isLevelComplete()
     return true
 end
 
+local function hasMedalForLevel()
+    return isLevelComplete() and (LEVELS[currentLevel].maxBullets - player.bullets) <= LEVELS[currentLevel].medalBullets
+end
+
 local function resetLevel(levelNumber)
     local levelData = LEVELS[levelNumber]
     bumpWorld = bump.newWorld(8)
@@ -477,7 +507,7 @@ local function resetLevel(levelNumber)
     end
     for entity in all(levelData.entities) do
         if entity.entityType == "SPAWN" then
-            player = Player(entity.x, entity.y, 4)
+            player = Player(entity.x, entity.y, levelData.maxBullets)
         elseif entity.entityType == "LOCK" then
             add(locks, Lock(entity.x, entity.y))
         elseif entity.entityType == "SWITCH" then
@@ -503,10 +533,10 @@ local function resetLevel(levelNumber)
     end
 end
 
-function initGame()
+function initGame(initLevel)
     cameraShake = 0
     shownSignTimer = 0
-    currentLevel = 1
+    currentLevel = initLevel or 1
     resetLevel(currentLevel)
 end
 
@@ -517,11 +547,30 @@ end
 function updateGame()
     if not isLevelComplete() then
         player:update()
-    elseif currentLevel < #LEVELS and levelTransitionTimer == 0 then
-        levelTransitionTimer = LEVEL_TRANSITION_TIMER_MAX
-        levelTransitionCallback = (function ()
-            currentLevel = currentLevel + 1
-        end)
+        levelCompleteTimer = 0
+    else
+        if levelCompleteTimer == 0 then
+            saveLevelProgress(currentLevel, true, hasMedalForLevel())
+        end
+        -- Used for animating level complete banner
+        if levelCompleteTimer < LEVEL_COMPLETE_TIMER_MAX then
+            levelCompleteTimer = levelCompleteTimer + 1
+        end
+        if currentLevel < #LEVELS and levelTransitionTimer == 0 then
+            if btnp(5) then
+                levelTransitionTimer = LEVEL_TRANSITION_TIMER_MAX
+                levelTransitionCallback = (function ()
+                    currentLevel = currentLevel + 1
+                    resetLevel(currentLevel)
+                end)
+            elseif btnp(4) then
+                levelTransitionTimer = LEVEL_TRANSITION_TIMER_MAX
+                levelTransitionCallback = (function ()
+                    state = STATES.SELECT
+                    initSelect()
+                end)
+            end
+        end
     end
 
     if player.shownSign and shownSignTimer < SHOWN_SIGN_TIMER_MAX then
@@ -562,14 +611,24 @@ function drawHudText(text, x, y)
 end
 
 
+local LEVEL_COMPLETE_TEXT = 'level complete'
+local NEXT_LEVEL_TEXT = '\x97 next level'
+local BACK_TO_SELECT_TEXT = '\x8e return to level select'
 function drawHud()
     drawHudText('Lev. '..tostr(currentLevel), 8, 14 * 8 + 5)
     palt(14, true)
     palt(0, false)
     spr(35, 40, 14 * 8 + 4)
+    spr(36, 72, 14 * 8 + 4)
     palt(14, false)
     palt(0, true)
     drawHudText('x'..tostr(player.bullets), 52, 14 * 8 + 5)
+    local medalBullets = LEVELS[currentLevel].medalBullets - (LEVELS[currentLevel].maxBullets - player.bullets)
+    local medalText = 'x'..tostr(medalBullets)
+    if medalBullets <= 0 then
+        medalText = '-'
+    end
+    drawHudText(medalText, 84, 14 * 8 + 5)
 
     clip(0, 14 * 8, 128, 16 * shownSignTimer/SHOWN_SIGN_TIMER_MAX)
     rectfill(1, 14 * 8 + 1, 126, 16 * 8 - 2, 0)
@@ -579,6 +638,21 @@ function drawHud()
         print(player.shownSign.text[2], 3, 14 * 8 + 9, 7)
     end
     clip()
+
+    -- Show animated level complete banner...if level is complete.
+    if isLevelComplete() then
+        local bannerClipProgress = levelCompleteTimer/LEVEL_COMPLETE_TIMER_MAX
+        clip(0, 59, 128, 40 * bannerClipProgress)
+        rectfill(0, 59, 127, 69, 0)
+        local levelCompleteColor = 7
+        -- TODO different colour if medal
+        printCentre(LEVEL_COMPLETE_TEXT, 62, levelCompleteColor)
+
+        rectfill(0, 72, 127, 95, 0)
+        printCentre(NEXT_LEVEL_TEXT, 78, 7)
+        printCentre(BACK_TO_SELECT_TEXT, 86, 7)
+        clip()
+    end
 end
 
 function drawTransition()
@@ -639,11 +713,11 @@ function initTitle()
 end
 
 function updateTitle()
-    if btnp(5) then
+    if btnp(5) and titleTimer > TITLE_TIMER_MAX then
         levelTransitionTimer = LEVEL_TRANSITION_TIMER_MAX
         levelTransitionCallback = (function ()
-            state = STATES.GAME
-            initGame()
+            state = STATES.SELECT
+            initSelect()
         end)
     end
     if rnd() < 0.01 then
@@ -687,12 +761,88 @@ function drawTitle()
     foreach(entities, drawSelf)
 
     local textColor = pressStartColors[flr(titleTimer/8) % #pressStartColors + 1]
-    print(pressStartText, (128 - #pressStartText * 4)/2, 11 * 8, textColor)
+    printCentre(pressStartText, 11 * 8, textColor)
+end
+
+local SELECT_TIMER_MAX = 240
+local cursorX
+local cursorY
+local selectTimer
+local selectWidth = 6
+function initSelect()
+    cursorX = 0
+    cursorY = 0
+    selectTimer = 0
+end
+
+function updateSelect()
+    selectTimer = (selectTimer + 1) % SELECT_TIMER_MAX
+    if btnp(0) then
+        cursorX = cursorX - 1
+    elseif btnp(1) then
+        cursorX = cursorX + 1
+    elseif btnp(2) then
+        cursorY = cursorY - 1
+    elseif btnp(3) then
+        cursorY = cursorY + 1
+    end
+    cursorX = cursorX % selectWidth
+    cursorY = cursorY % selectWidth
+
+    if btnp(5) or btnp(4) then
+        levelTransitionTimer = LEVEL_TRANSITION_TIMER_MAX
+        levelTransitionCallback = (function ()
+            state = STATES.GAME
+            initGame(cursorY * selectWidth + cursorX + 1)
+        end)
+    end
+end
+
+function drawLevelIcon(x, y, levelNumber, isSelected, isComplete, hasMedal)
+    levelNumber = tostr(levelNumber)
+    local iconColor = 5
+    if hasMedal then
+        iconColor = 9
+    elseif isComplete then
+        iconColor = 13
+    end
+    rectfill(x, y, x + 15, y + 15, iconColor)
+    local iconFrameColor = 0
+    if isSelected then
+        iconFrameColor = 7
+    end
+    rect(x, y, x + 15, y + 15, iconFrameColor)
+    print(levelNumber, x + (16 - #levelNumber * 4)/2, y + 7, 0)
+    print(levelNumber, x + (16 - #levelNumber * 4)/2, y + 6, 7)
+end
+
+local LEVEL_SELECT_TEXT = 'select level'
+function drawSelect()
+    cls()
+    camera(0, selectTimer/SELECT_TIMER_MAX * 128)
+    map(16, 0, 0, 0)
+    camera()
+    printCentre(LEVEL_SELECT_TEXT, 8, 7)
+    for x=0,selectWidth - 1 do
+        for y=0,selectWidth - 1 do
+            local levelNumber = y * selectWidth + x + 1
+            local isComplete, hasMedal = loadLevelProgress(levelNumber)
+            drawLevelIcon(
+                12 + x * 18,
+                16 + y * 18,
+                levelNumber,
+                x == cursorX and y == cursorY,
+                isComplete,
+                hasMedal
+            )
+        end
+    end
 end
 
 function _init()
     -- Disable button repeating
     poke(0x5f5c, 255)
+    cartdata('propulsion')
 
     titleTimer = 0
     levelTransitionTimer = LEVEL_TRANSITION_TIMER_MAX/2
@@ -706,6 +856,8 @@ function _update60()
         updateGame()
     elseif state == STATES.TITLE then
         updateTitle()
+    elseif state == STATES.SELECT then
+        updateSelect()
     end
 
     titleTimer = titleTimer + 1
@@ -716,7 +868,6 @@ function _update60()
                 levelTransitionCallback()
                 levelTransitionCallback = nil
             end
-            resetLevel(currentLevel)
         end
     end
 end
@@ -726,6 +877,8 @@ function _draw()
         drawGame()
     elseif state == STATES.TITLE then
         drawTitle()
+    elseif state == STATES.SELECT then
+        drawSelect()
     end
     drawTransition()
 

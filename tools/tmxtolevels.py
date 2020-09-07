@@ -8,8 +8,12 @@ ENTITY_FORMAT =  "{{ entityType = {entityType}, x = {x}, y = {y}, width = {width
 WALL_FORMAT =  "{{ {x}, {y}, {width}, {height} }}"
 
 LEVELS = {
-    1: 'maps/demo2.tmx',
-    2: 'maps/demo.tmx',
+    1: 'maps/level1.tmx',
+    2: 'maps/level2.tmx',
+    3: 'maps/level3.tmx',
+    4: 'maps/level4.tmx',
+    5: 'maps/demo2.tmx',
+    6: 'maps/demo.tmx',
 }
 
 def convert_tiles(map_root):
@@ -107,12 +111,37 @@ def convert_walls(map_root):
     return output + "},"
 
 
+def get_bullet_numbers(map_root):
+    map_properties = None
+    for child in map_root:
+        if child.tag == "properties":
+            map_properties = child
+            break
+
+    if not map_properties:
+        print("Could not find properties in map file. Is this a Tiled .tmx file?")
+        return
+
+    max_bullets = None
+    medal_bullets = None
+    for map_property in map_properties:
+        if map_property.attrib['name'] == "maxBullets":
+            max_bullets = map_property.attrib['value']
+        if map_property.attrib['name'] == "medalBullets":
+            medal_bullets = map_property.attrib['value']
+
+    return "maxBullets = {max_bullets}, medalBullets = {medal_bullets},".format(
+        max_bullets=max_bullets,
+        medal_bullets=medal_bullets,
+    )
+
+
 def main(tmx_directory, levels_filename):
     output = "local LEVELS = {"
 
     for level_number, tmx_filename in LEVELS.items():
         map_root = ElementTree.parse(tmx_filename).getroot()
-        output += "[{}] = {{".format(level_number) + convert_tiles(map_root) + convert_entities(map_root) + convert_walls(map_root) +  "},"
+        output += "[{}] = {{".format(level_number) + get_bullet_numbers(map_root) + convert_tiles(map_root) + convert_entities(map_root) + convert_walls(map_root) +  "},"
 
     output = output + "}\n"
 
