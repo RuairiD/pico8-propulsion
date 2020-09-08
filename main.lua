@@ -729,7 +729,7 @@ function updateTitle()
             initSelect()
         end)
     end
-    if rnd() < 0.01 then
+    if rnd() < 0.03 then
         local side = rnd()
         local bulletX, bulletY
         if side < 0.25 then
