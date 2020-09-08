@@ -671,22 +671,22 @@ function drawTransition()
         local radiusRatio = ((LEVEL_TRANSITION_TIMER_MAX/2) - abs(levelTransitionTimer - LEVEL_TRANSITION_TIMER_MAX/2))/(LEVEL_TRANSITION_TIMER_MAX/2)
         local radius = 128 * radiusRatio
         fillp('0b0111111101111111.1')
-        circfill(64, 64, radius, 7)
+        circfill(64, 64, radius, 0)
         if radius > 8 then
             fillp('0b1101101111011011.1')
-            circfill(64, 64, radius - 8, 7)
+            circfill(64, 64, radius - 8, 0)
         end
         if radius > 16 then
             fillp('0b0101101001011010.1')
-            circfill(64, 64, radius - 16, 7)
+            circfill(64, 64, radius - 16, 0)
         end
         if radius > 24 then
             fillp('0b0001100000011000.1')
-            circfill(64, 64, radius - 24, 7)
+            circfill(64, 64, radius - 24, 0)
         end
         if radius > 32 then
             fillp()
-            circfill(64, 64, radius - 32, 7)
+            circfill(64, 64, radius - 32, 0)
         end
         fillp()
     end
@@ -852,7 +852,7 @@ function _init()
     -- Disable button repeating
     poke(0x5f5c, 255)
     cartdata('propulsion')
-
+    music(0)
     titleTimer = 0
     levelTransitionTimer = LEVEL_TRANSITION_TIMER_MAX/2
 
@@ -892,13 +892,13 @@ function _draw()
     drawTransition()
 
     if titleTimer < TITLE_TIMER_MAX then
-        local textColor = 0
+        local textColor = 7
         if titleTimer > TITLE_TIMER_MAX - 16 or titleTimer < 8 then
-            textColor = 7
+            textColor = 5
         elseif titleTimer > TITLE_TIMER_MAX - 20 or titleTimer < 12 then
             textColor = 6
         elseif titleTimer > TITLE_TIMER_MAX - 24 or titleTimer < 16 then
-            textColor = 5
+            textColor = 6
         end
         print('ruairidx', 50, 61, textColor)
     end
