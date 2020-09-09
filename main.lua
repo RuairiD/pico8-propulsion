@@ -659,6 +659,7 @@ function drawHudText(text, x, y)
 end
 
 
+local MEDAL_GET_TEXT = 'medal get!'
 local LEVEL_COMPLETE_TEXT = 'level complete'
 local NEXT_LEVEL_TEXT = '\x97 next level'
 local BACK_TO_SELECT_TEXT = '\x8e return to level select'
@@ -681,7 +682,6 @@ function drawHud()
     clip(0, 14 * 8, 128, 16 * shownSignTimer/SHOWN_SIGN_TIMER_MAX)
     rectfill(1, 14 * 8 + 1, 126, 16 * 8 - 2, 0)
     if player.shownSign then
-        -- TODO proper two line text.
         print(player.shownSign.text[1], 3, 14 * 8 + 3, 7)
         print(player.shownSign.text[2], 3, 14 * 8 + 9, 7)
     end
@@ -690,11 +690,13 @@ function drawHud()
     -- Show animated level complete banner...if level is complete.
     if isLevelComplete() then
         local bannerClipProgress = levelCompleteTimer/LEVEL_COMPLETE_TIMER_MAX
-        clip(0, 59, 128, 40 * bannerClipProgress)
-        rectfill(0, 59, 127, 69, 0)
-        local levelCompleteColor = 7
-        -- TODO different colour if medal
-        printCentre(LEVEL_COMPLETE_TEXT, 62, levelCompleteColor)
+        clip(0, 47, 128, 60 * bannerClipProgress)
+        rectfill(0, 47, 127, 57, 0)
+        printCentre(LEVEL_COMPLETE_TEXT, 50, 7)
+        if hasMedalForLevel() then
+            rectfill(0, 59, 127, 69, 0)
+            printCentre(MEDAL_GET_TEXT, 62, 10)
+        end
 
         if currentLevel < #LEVELS then
             rectfill(0, 72, 127, 95, 0)
@@ -902,7 +904,7 @@ function _init()
     -- Disable button repeating
     poke(0x5f5c, 255)
     cartdata('propulsion')
-    music(0)
+    music(0, 2000)
     titleTimer = 0
     levelTransitionTimer = LEVEL_TRANSITION_TIMER_MAX/2
 
