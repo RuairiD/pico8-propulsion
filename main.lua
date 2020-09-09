@@ -621,7 +621,7 @@ function updateGame()
                     resetLevel(currentLevel)
                 end)
             elseif btnp(4) then
-                sfx(61)
+                sfx(63)
                 levelTransitionTimer = LEVEL_TRANSITION_TIMER_MAX
                 levelTransitionCallback = (function ()
                     state = STATES.SELECT
@@ -782,7 +782,7 @@ function updateTitle()
             initSelect()
         end)
     end
-    if rnd() < 0.03 then
+    if #bullets < 4 and rnd() < 0.1 then
         local side = rnd()
         local bulletX, bulletY
         if side < 0.25 then
