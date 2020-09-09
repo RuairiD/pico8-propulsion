@@ -252,7 +252,7 @@ Bullet.COLORS = {
 }
 Bullet.MAX_LIFE = (8 * 32/Bullet.SPEED) * Bullet.MAX_BOUNCES + Bullet.DEATH_TIMER_MAX
 
-function Bullet:new(x, y, angle)
+function Bullet:new(x, y, angle, isTitleScreen)
     Bullet.super.new(self, x, y, 4, 4)
     self.velX = cos(angle)
     self.velY = sin(angle)
@@ -260,6 +260,8 @@ function Bullet:new(x, y, angle)
     self.lastPositions = {}
     self.deathTimer = 0
     self.timeAlive = 0
+    -- Used to control bounce sound.
+    self.isTitleScreen = isTitleScreen
 end
 
 function Bullet:destroy()
@@ -287,6 +289,9 @@ function Bullet:update()
         self.x, self.y, collisions, _ = bumpWorld:move(self, goalX, goalY, self.moveFilter)
         for _, collision in ipairs(collisions) do
             if collision.other:is(Wall) then
+                if not self.isTitleScreen then
+                    sfx(58)
+                end
                 self.bounces = self.bounces + 1
                 if collision.normal.y ~= 0 then
                     self.velY = self.velY * -1
@@ -297,8 +302,11 @@ function Bullet:update()
             end
             if collision.other:is(Switch) and not collision.other.isDisabled then
                 collision.other.isDisabled = true
+                sfx(62)
+                sfx(55)
             end
             if collision.other:is(Lock) and not collision.other.isDisabled then
+                sfx(57)
                 collision.other.isDisabled = true
             end
         end
@@ -308,6 +316,9 @@ function Bullet:update()
             del(self.lastPositions, self.lastPositions[1])
         end
     else
+        if not self.isTitleScreen and self.deathTimer == 0 then
+            sfx(61)
+        end
         self.deathTimer = self.deathTimer + 1
         if self.deathTimer >= Bullet.DEATH_TIMER_MAX then
             self:destroy()
@@ -367,6 +378,7 @@ function Player:new(x, y, bullets)
     Player.super.new(self, x, y, 8, 8)
     self.bullets = bullets
     self.velY = 0
+    self.walkFrame = 0
     self.onGround = false
     -- point up to start
     self.angle = 0.25
@@ -395,13 +407,19 @@ function Player:update()
     else
         if btn(0) then
             goalX = goalX - Player.SPEED
+            self.walkFrame = self.walkFrame + 1
         elseif btn(1) then
             goalX = goalX + Player.SPEED
+            self.walkFrame = self.walkFrame + 1
+        else
+            self.walkFrame = 0
         end
+        self.walkFrame = self.walkFrame % 12
     end
 
     if btnp(2) then
         if self.onGround then
+            sfx(56)
             self.velY = -2.5
         end
     end
@@ -410,6 +428,8 @@ function Player:update()
         add(bullets, Bullet(self.x + 3, self.y + 3, self.angle))
         cameraShake = 1
         self.bullets = self.bullets - 1
+        sfx(59)
+        sfx(60)
     end
 
     goalY = goalY + self.velY
@@ -445,17 +465,30 @@ function Player:update()
     end
 end
 
-local LINE_LENGTH = 20
+local LINE_BUFFER = 10
+local LINE_LENGTH = 32
 function Player:draw()
+    palt(14, true)
+    palt(0, false)
+    local movingLeft = self.angle > 0.25 and self.angle < 0.75
+    if self.onGround then
+        spr(128 + flr(self.walkFrame / 3), self.x, self.y - 8, 1, 2, movingLeft)
+    else
+        if self.velY < 0 then
+            spr(132, self.x, self.y - 8, 1, 2, movingLeft)
+        else
+            spr(133, self.x, self.y - 8, 1, 2, movingLeft)
+        end
+    end
+    palt(14, false)
+    palt(0, true)
     local lineColorCode = 7
     if btn(5) then
         lineColorCode = 10
     end
-    rectfill(self.x, self.y, self.x + self.width - 1, self.y + self.height - 1, 12)
-    rect(self.x, self.y, self.x + self.width - 1, self.y + self.height - 1, 0)
     line(
-        self.x + 4 + 2 * cos(self.angle),
-        self.y + 4 + 2 * sin(self.angle),
+        self.x + 4 + LINE_BUFFER * cos(self.angle),
+        self.y + 4 + LINE_BUFFER * sin(self.angle),
         self.x + 4 + LINE_LENGTH * cos(self.angle),
         self.y + 4 + LINE_LENGTH * sin(self.angle),
         lineColorCode
@@ -557,6 +590,14 @@ function updateGame()
     if not isLevelComplete() then
         player:update()
         levelCompleteTimer = 0
+
+        -- Reset level
+        if #bullets == 0 and player.bullets == 0 and levelTransitionTimer == 0 then
+            levelTransitionTimer = LEVEL_TRANSITION_TIMER_MAX
+            levelTransitionCallback = (function ()
+                resetLevel(currentLevel)
+            end)
+        end
     else
         if levelCompleteTimer == 0 then
             saveLevelProgress(currentLevel, true, hasMedalForLevel())
@@ -565,14 +606,16 @@ function updateGame()
         if levelCompleteTimer < LEVEL_COMPLETE_TIMER_MAX then
             levelCompleteTimer = levelCompleteTimer + 1
         end
-        if currentLevel < #LEVELS and levelTransitionTimer == 0 then
-            if btnp(5) then
+        if levelTransitionTimer == 0 then
+            if btnp(5) and currentLevel < #LEVELS then
+                sfx(63)
                 levelTransitionTimer = LEVEL_TRANSITION_TIMER_MAX
                 levelTransitionCallback = (function ()
                     currentLevel = currentLevel + 1
                     resetLevel(currentLevel)
                 end)
             elseif btnp(4) then
+                sfx(61)
                 levelTransitionTimer = LEVEL_TRANSITION_TIMER_MAX
                 levelTransitionCallback = (function ()
                     state = STATES.SELECT
@@ -602,10 +645,6 @@ function updateGame()
         cameraShake = cameraShake - 0.1
     else
         cameraShake = 0
-    end
-
-    if #bullets == 0 and player.bullets == 0 and levelTransitionTimer == 0 then
-        levelTransitionTimer = LEVEL_TRANSITION_TIMER_MAX
     end
 end
 
@@ -657,9 +696,14 @@ function drawHud()
         -- TODO different colour if medal
         printCentre(LEVEL_COMPLETE_TEXT, 62, levelCompleteColor)
 
-        rectfill(0, 72, 127, 95, 0)
-        printCentre(NEXT_LEVEL_TEXT, 78, 7)
-        printCentre(BACK_TO_SELECT_TEXT, 86, 7)
+        if currentLevel < #LEVELS then
+            rectfill(0, 72, 127, 95, 0)
+            printCentre(NEXT_LEVEL_TEXT, 78, 7)
+            printCentre(BACK_TO_SELECT_TEXT, 86, 7)
+        else
+            rectfill(0, 72, 127, 87, 0)
+            printCentre(BACK_TO_SELECT_TEXT, 78, 7)
+        end
         clip()
     end
 end
@@ -722,7 +766,8 @@ function initTitle()
 end
 
 function updateTitle()
-    if btnp(5) and titleTimer > TITLE_TIMER_MAX then
+    if levelTransitionTimer == 0 and btnp(5) and titleTimer > TITLE_TIMER_MAX then
+        sfx(63)
         levelTransitionTimer = LEVEL_TRANSITION_TIMER_MAX
         levelTransitionCallback = (function ()
             state = STATES.SELECT
@@ -749,7 +794,7 @@ function updateTitle()
             bulletX = -16 + rnd(160)
             bulletY = 144
         end
-        add(bullets, Bullet(bulletX, bulletY, rnd()))
+        add(bullets, Bullet(bulletX, bulletY, rnd(), true))
     end
     foreach(bullets, function(bullet)
         if bullet.isDestroyed then
@@ -788,17 +833,22 @@ function updateSelect()
     selectTimer = (selectTimer + 1) % SELECT_TIMER_MAX
     if btnp(0) then
         cursorX = cursorX - 1
+        sfx(62)
     elseif btnp(1) then
         cursorX = cursorX + 1
+        sfx(62)
     elseif btnp(2) then
         cursorY = cursorY - 1
+        sfx(62)
     elseif btnp(3) then
         cursorY = cursorY + 1
+        sfx(62)
     end
     cursorX = cursorX % selectWidth
     cursorY = cursorY % selectWidth
 
-    if btnp(5) or btnp(4) then
+    if levelTransitionTimer == 0 and (btnp(5) or btnp(4)) then
+        sfx(63)
         levelTransitionTimer = LEVEL_TRANSITION_TIMER_MAX
         levelTransitionCallback = (function ()
             state = STATES.GAME
