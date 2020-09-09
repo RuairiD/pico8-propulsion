@@ -5,7 +5,7 @@
  </editorsettings>
  <properties>
   <property name="maxBullets" type="int" value="3"/>
-  <property name="medalBullets" type="int" value="2"/>
+  <property name="medalBullets" type="int" value="1"/>
  </properties>
  <tileset firstgid="1" source="../sprites.tsx"/>
  <layer id="1" name="tiles" width="16" height="14">

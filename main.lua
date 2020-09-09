@@ -203,14 +203,20 @@ SwitchWall.FILL_PATTERNS = {
     '0b0000000000001111.1',
 }
 
+SwitchWall.FADE_TIMER_MAX = 6
+
 function SwitchWall:new(x, y, width, height, color)
     SwitchWall.super.new(self, x, y, width, height)
     self.color = color
     self.fillPatternIndex = 0
+    self.fadeTimer = SwitchWall.FADE_TIMER_MAX
 end
 
 function SwitchWall:update()
     self.fillPatternIndex = self.fillPatternIndex + 1
+    if self:isDisabled() and self.fadeTimer > 0 then
+        self.fadeTimer = self.fadeTimer - 1
+    end
 end
 
 function SwitchWall:isDisabled()
@@ -230,9 +236,9 @@ function SwitchWall:getPlayerCollisionType()
 end
 
 function SwitchWall:draw()
-    if not self:isDisabled() then
+    if self.fadeTimer > 0 then
         fillp(SwitchWall.FILL_PATTERNS[self.fillPatternIndex % #SwitchWall.FILL_PATTERNS + 1])
-        rectfill(self.x, self.y, self.x + self.width - 1, self.y + self.height - 1, self.color)
+        rectfill(self.x, self.y, self.x + self.width - 1, self.y + flr(self.height * self.fadeTimer/SwitchWall.FADE_TIMER_MAX) - 1, self.color)
         fillp()
     end
 end
@@ -425,7 +431,7 @@ function Player:update()
     end
 
     if btnp(4) and self.bullets > 0 then
-        add(bullets, Bullet(self.x + 3, self.y + 3, self.angle))
+        add(bullets, Bullet(self.x + 2, self.y + 2, self.angle))
         cameraShake = 1
         self.bullets = self.bullets - 1
         sfx(59)
@@ -821,13 +827,11 @@ function drawTitle()
 end
 
 local SELECT_TIMER_MAX = 240
-local cursorX
-local cursorY
+local cursorX = 0
+local cursorY = 0
 local selectTimer
 local selectWidth = 6
 function initSelect()
-    cursorX = 0
-    cursorY = 0
     selectTimer = 0
 end
 
@@ -946,9 +950,9 @@ function _draw()
     if titleTimer < TITLE_TIMER_MAX then
         local textColor = 7
         if titleTimer > TITLE_TIMER_MAX - 16 or titleTimer < 8 then
-            textColor = 5
+            textColor = 0
         elseif titleTimer > TITLE_TIMER_MAX - 20 or titleTimer < 12 then
-            textColor = 6
+            textColor = 5
         elseif titleTimer > TITLE_TIMER_MAX - 24 or titleTimer < 16 then
             textColor = 6
         end

@@ -7,44 +7,22 @@ HEIGHT = 14
 ENTITY_FORMAT =  "{entityType}, {x}, {y}, {width}, {height}, {{ {props} }}"
 WALL_FORMAT =  "{x}, {y}, {width}, {height}"
 
-LEVELS = {
-    1: 'maps/level1.tmx',
-    2: 'maps/level2.tmx',
-    3: 'maps/level3.tmx',
-    4: 'maps/level4.tmx',
-    5: 'maps/demo2.tmx',
-    6: 'maps/demo.tmx',
-    7: 'maps/level1.tmx',
-    8: 'maps/level2.tmx',
-    9: 'maps/level3.tmx',
-    10: 'maps/level4.tmx',
-    11: 'maps/demo2.tmx',
-    12: 'maps/demo.tmx',
-    13: 'maps/level1.tmx',
-    14: 'maps/level2.tmx',
-    15: 'maps/level3.tmx',
-    16: 'maps/level4.tmx',
-    17: 'maps/demo2.tmx',
-    18: 'maps/demo.tmx',
-    19: 'maps/level1.tmx',
-    20: 'maps/level2.tmx',
-    21: 'maps/level3.tmx',
-    22: 'maps/level4.tmx',
-    23: 'maps/demo2.tmx',
-    24: 'maps/demo.tmx',
-    25: 'maps/level1.tmx',
-    26: 'maps/level2.tmx',
-    27: 'maps/level3.tmx',
-    28: 'maps/level4.tmx',
-    29: 'maps/demo2.tmx',
-    30: 'maps/demo.tmx',
-    31: 'maps/level1.tmx',
-    32: 'maps/level2.tmx',
-    33: 'maps/level3.tmx',
-    34: 'maps/level4.tmx',
-    35: 'maps/demo2.tmx',
-    36: 'maps/demo.tmx',
-}
+LEVELS = [
+    'maps/level1.tmx',
+    # Introduce bouncing.
+    'maps/level2.tmx',
+    'maps/level5.tmx',
+    # Introduce switches
+    'maps/level3.tmx',
+    'maps/level6.tmx',
+    'maps/level7.tmx',
+    # Introduce fences
+    'maps/demo2.tmx',
+    'maps/level4.tmx',
+    'maps/demo.tmx',
+    'maps/level8.tmx',
+]
+
 
 def convert_tiles(map_root):
     map_tiles_text = None
@@ -167,11 +145,12 @@ def get_bullet_numbers(map_root):
 
 
 def main(tmx_directory, levels_filename):
+    print("Building {} levels.".format(len(LEVELS)))
     output = "local LEVELS = {"
 
-    for level_number, tmx_filename in LEVELS.items():
+    for level_number, tmx_filename in enumerate(LEVELS):
         map_root = ElementTree.parse(tmx_filename).getroot()
-        output += "[{}] = {{".format(level_number) + get_bullet_numbers(map_root) + convert_tiles(map_root) + convert_entities(map_root) + convert_walls(map_root) +  "},"
+        output += "[{}] = {{".format(level_number + 1) + get_bullet_numbers(map_root) + convert_tiles(map_root) + convert_entities(map_root) + convert_walls(map_root) +  "},"
 
     output = output + "}\n"
 
