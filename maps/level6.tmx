@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.4" tiledversion="1.4.2" orientation="orthogonal" renderorder="right-down" width="16" height="14" tilewidth="8" tileheight="8" infinite="0" nextlayerid="4" nextobjectid="52">
+<map version="1.4" tiledversion="1.4.2" orientation="orthogonal" renderorder="right-down" width="16" height="14" tilewidth="8" tileheight="8" infinite="0" nextlayerid="4" nextobjectid="53">
  <editorsettings>
-  <export format="json"/>
+  <export target="." format="json"/>
  </editorsettings>
  <properties>
   <property name="maxBullets" type="int" value="4"/>
@@ -48,6 +48,11 @@
   <object id="51" type="SWITCH_WALL" x="96" y="32" width="24" height="8">
    <properties>
     <property name="color" value="RED"/>
+   </properties>
+  </object>
+  <object id="52" type="SIGN" x="96" y="96" width="8" height="8">
+   <properties>
+    <property name="text" value="feeling confident? each level has an unlockable medal for economic ammunition distribution (read: get a prize if you don't use a lot of bullets)"/>
    </properties>
   </object>
  </objectgroup>

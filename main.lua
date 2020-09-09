@@ -6,6 +6,7 @@ local SHOWN_SIGN_TIMER_MAX = 10
 local TITLE_TIMER_MAX = 120
 local LEVEL_COMPLETE_TIMER_MAX = 30
 
+local player
 local currentLevel
 local bumpWorld
 local entities
@@ -14,7 +15,7 @@ local switches
 local cameraShake
 local locks
 local levelTransitionTimer
-local shownSignTimer
+local showingText
 local levelTransitionCallback
 local titleTimer
 local levelCompleteTimer
@@ -38,11 +39,14 @@ local function loadLevelProgress(levelNumber)
 end
 
 local function saveLevelProgress(levelNumber, isComplete, hasMedal)
+    -- Careful not to overwrite existing data; if the player already has a medal,
+    -- missing it on a retry shouldn't remove it.
+    local existingIsComplete, existingHasMedal = loadLevelProgress(levelNumber)
     local data = 0
-    if isComplete then
+    if isComplete or existingIsComplete then
         data = data | 1
     end
-    if hasMedal then
+    if hasMedal or existingHasMedal then
         data = data | 2
     end
     dset(levelNumber - 1, data)
@@ -148,6 +152,7 @@ end
 
 
 local Sign = Entity:extend()
+Sign.TOOLTIP = 'hold \x83 to read'
 
 function Sign:new(x, y, text)
     Switch.super.new(self, x, y, 8, 8)
@@ -164,6 +169,15 @@ function Sign:draw()
     fillp(flr(rnd(0x8000)))
     rectfill(self.x + 1, self.y + 1, self.x + 6, self.y + 4, 11)
     fillp()
+
+    -- Show tooltip
+    if player.shownSign == self then
+        local tooltipX = self.x + (8 - #Sign.TOOLTIP * 4)/2
+        if tooltipX < 2 then
+            tooltipX = 2
+        end
+        print(Sign.TOOLTIP, tooltipX, self.y - 14, 7)
+    end
 end
 
 function Sign:getPlayerCollisionType()
@@ -502,7 +516,6 @@ function Player:draw()
 end
 
 -- START MAIN
-local player
 local WALL_TILES = {
     1, 2, 3, 4, 5, 6,
     18, 19, 20, 21,
@@ -560,7 +573,7 @@ local function resetLevel(levelNumber)
         elseif entitiesData[i] == "SIGN" then
             add(entities, Sign(
                 x, y,
-                { props.text1, props.text2 }
+                props.text
             ))
         end
     end
@@ -583,7 +596,7 @@ end
 
 function initGame(initLevel)
     cameraShake = 0
-    shownSignTimer = 0
+    showingText = false
     currentLevel = initLevel or 1
     resetLevel(currentLevel)
 end
@@ -594,8 +607,11 @@ end
 
 function updateGame()
     if not isLevelComplete() then
-        player:update()
+        if not showingText then
+            player:update()
+        end
         levelCompleteTimer = 0
+        showingText = player.shownSign ~= nil and btn(3)
 
         -- Reset level
         if #bullets == 0 and player.bullets == 0 and levelTransitionTimer == 0 then
@@ -605,6 +621,7 @@ function updateGame()
             end)
         end
     else
+        showingText = false
         if levelCompleteTimer == 0 then
             saveLevelProgress(currentLevel, true, hasMedalForLevel())
         end
@@ -631,21 +648,17 @@ function updateGame()
         end
     end
 
-    if player.shownSign and shownSignTimer < SHOWN_SIGN_TIMER_MAX then
-        shownSignTimer = shownSignTimer + 1
-    elseif not player.shownSign and shownSignTimer > 0 then
-        shownSignTimer = shownSignTimer - 1
+    if not showingText then
+        foreach(locks, updateSelf)
+        foreach(entities, updateSelf)
+        foreach(bullets, function(bullet)
+            if bullet.isDestroyed then
+                del(bullets, bullet)
+            else
+                bullet:update()
+            end
+        end)
     end
-
-    foreach(locks, updateSelf)
-    foreach(entities, updateSelf)
-    foreach(bullets, function(bullet)
-        if bullet.isDestroyed then
-            del(bullets, bullet)
-        else
-            bullet:update()
-        end
-    end)
 
     if cameraShake > 0 then
         cameraShake = cameraShake - 0.1
@@ -662,6 +675,23 @@ end
 function drawHudText(text, x, y)
     print(text, x, y + 1, 5)
     print(text, x, y, 7)
+end
+
+local SIGN_LINE_LENGTH = 92
+function drawSignText(text)
+    local words = split(text, ' ')
+    local line = ''
+    local y = 19
+    for word in all(words) do
+        if #(line..word) * 4 < SIGN_LINE_LENGTH then
+            line = line..word.." "
+        else
+            print(line, 19, y, 7)
+            line = word.." "
+            y = y + 8
+        end
+    end
+    print(line, 19, y, 7)
 end
 
 
@@ -685,13 +715,11 @@ function drawHud()
     end
     drawHudText(medalText, 84, 14 * 8 + 5)
 
-    clip(0, 14 * 8, 128, 16 * shownSignTimer/SHOWN_SIGN_TIMER_MAX)
-    rectfill(1, 14 * 8 + 1, 126, 16 * 8 - 2, 0)
-    if player.shownSign then
-        print(player.shownSign.text[1], 3, 14 * 8 + 3, 7)
-        print(player.shownSign.text[2], 3, 14 * 8 + 9, 7)
+    if showingText then
+        rectfill(16, 16, 111, 95, 7)
+        rectfill(17, 17, 110, 94, 0)
+        drawSignText(player.shownSign.text)
     end
-    clip()
 
     -- Show animated level complete banner...if level is complete.
     if isLevelComplete() then

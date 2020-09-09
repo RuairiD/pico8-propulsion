@@ -50,8 +50,7 @@
   <object id="23" type="FENCE" x="32" y="8" width="8" height="16"/>
   <object id="26" type="SIGN" x="40" y="96" width="8" height="8">
    <properties>
-    <property name="text1" value="Top line of text, very nice."/>
-    <property name="text2" value="Second line of text, almost as nice."/>
+    <property name="text" value="Top line of text, very nice. Second line of text, almost as nice."/>
    </properties>
   </object>
  </objectgroup>

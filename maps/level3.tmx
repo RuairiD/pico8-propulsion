@@ -37,8 +37,7 @@
   <object id="2" type="LOCK" x="84" y="20" width="8" height="8"/>
   <object id="26" type="SIGN" x="56" y="96" width="8" height="8">
    <properties>
-    <property name="text1" value="coloured walls are irksome."/>
-    <property name="text2" value="find the switch."/>
+    <property name="text" value="coloured walls are irksome, but they don't have to be. life might get easier if you find the switch."/>
    </properties>
   </object>
   <object id="41" type="SWITCH_WALL" x="64" y="72" width="8" height="32">

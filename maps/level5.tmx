@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.4" tiledversion="1.4.2" orientation="orthogonal" renderorder="right-down" width="16" height="14" tilewidth="8" tileheight="8" infinite="0" nextlayerid="4" nextobjectid="44">
+<map version="1.4" tiledversion="1.4.2" orientation="orthogonal" renderorder="right-down" width="16" height="14" tilewidth="8" tileheight="8" infinite="0" nextlayerid="4" nextobjectid="45">
  <editorsettings>
-  <export format="json"/>
+  <export target="." format="json"/>
  </editorsettings>
  <properties>
   <property name="maxBullets" type="int" value="3"/>
@@ -34,5 +34,10 @@
   <object id="1" type="SPAWN" x="60" y="96" width="8" height="8"/>
   <object id="2" type="LOCK" x="32" y="16" width="8" height="8"/>
   <object id="41" type="LOCK" x="88" y="16" width="8" height="8"/>
+  <object id="44" type="SIGN" x="80" y="96" width="8" height="8">
+   <properties>
+    <property name="text" value="don't get too trigger happy; if you run out of bullets, you'll have to start the whole level again."/>
+   </properties>
+  </object>
  </objectgroup>
 </map>

@@ -37,8 +37,7 @@
   <object id="23" type="FENCE" x="88" y="40" width="32" height="32"/>
   <object id="24" type="SIGN" x="48" y="32" width="8" height="8">
    <properties>
-    <property name="text1" value="fences block big objects."/>
-    <property name="text2" value="bullets are small."/>
+    <property name="text" value="fences block big objects. bullets are small."/>
    </properties>
   </object>
  </objectgroup>
