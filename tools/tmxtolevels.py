@@ -23,6 +23,7 @@ LEVELS = [
     'maps/demo.tmx', # 2
     'maps/level8.tmx', # 3
     'maps/level9.tmx', # 3
+    'maps/level11.tmx', # 3
     'maps/level10.tmx', # 4
 ]
 

@@ -530,13 +530,18 @@ local function isInTable(x, xs)
     return false
 end
 
-local function isLevelComplete()
+local function getActiveGates()
+    local count = 0
     for lock in all(locks) do
         if not lock.isDisabled then
-            return false
+            count = count + 1
         end
     end
-    return true
+    return count
+end
+
+local function isLevelComplete()
+    return getActiveGates() == 0
 end
 
 local function hasMedalForLevel()
@@ -704,16 +709,18 @@ function drawHud()
     palt(14, true)
     palt(0, false)
     spr(35, 40, 14 * 8 + 4)
-    spr(36, 72, 14 * 8 + 4)
+    spr(36, 68, 14 * 8 + 4)
     palt(14, false)
     palt(0, true)
+    spr(29, 96, 14 * 8 + 4)
     drawHudText('x'..tostr(player.bullets), 52, 14 * 8 + 5)
     local medalBullets = LEVELS[currentLevel].medalBullets - (LEVELS[currentLevel].maxBullets - player.bullets)
     local medalText = 'x'..tostr(medalBullets)
     if medalBullets <= 0 then
         medalText = '-'
     end
-    drawHudText(medalText, 84, 14 * 8 + 5)
+    drawHudText(medalText, 80, 14 * 8 + 5)
+    drawHudText('x'..tostr(getActiveGates()), 108, 14 * 8 + 5)
 
     if showingText then
         rectfill(16, 16, 111, 95, 7)
