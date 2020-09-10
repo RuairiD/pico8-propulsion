@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.4" tiledversion="1.4.2" orientation="orthogonal" renderorder="right-down" width="16" height="14" tilewidth="8" tileheight="8" infinite="0" nextlayerid="4" nextobjectid="70">
+ <editorsettings>
+  <export target="." format="json"/>
+ </editorsettings>
+ <properties>
+  <property name="maxBullets" type="int" value="2"/>
+  <property name="medalBullets" type="int" value="1"/>
+ </properties>
+ <tileset firstgid="1" source="../sprites.tsx"/>
+ <layer id="1" name="tiles" width="16" height="14">
+  <data encoding="csv">
+11,8,11,9,13,8,12,29,29,13,8,8,12,57,13,11,
+27,12,28,41,2,5,3,23,7,5,6,55,7,27,12,28,
+9,10,27,27,3,20,21,74,6,54,7,21,5,12,10,27,
+25,26,12,10,21,75,45,59,12,29,10,74,39,8,25,13,
+9,29,13,25,13,8,42,45,44,17,27,61,39,12,29,10,
+27,5,6,23,23,7,60,17,17,74,75,59,21,6,4,27,
+11,38,7,75,45,43,17,17,17,58,43,42,45,44,39,8,
+41,21,6,23,4,60,17,17,17,17,60,60,74,5,21,8,
+25,13,9,13,21,74,17,17,17,17,11,42,59,38,7,8,
+11,12,26,11,5,58,45,44,9,13,41,60,74,21,2,8,
+40,13,9,26,19,4,8,12,26,12,26,75,76,44,5,8,
+27,11,27,11,5,21,6,4,58,44,3,7,3,7,39,8,
+9,26,8,41,19,23,7,19,7,6,20,6,20,6,20,8,
+27,12,13,25,13,8,8,8,8,8,8,12,29,29,13,8
+</data>
+ </layer>
+ <objectgroup color="#21ff06" id="3" name="walls">
+  <object id="57" x="8" y="32" width="40" height="8"/>
+  <object id="58" x="64" y="24" width="24" height="8"/>
+  <object id="60" x="80" y="24" width="8" height="16"/>
+  <object id="62" x="64" y="72" width="24" height="16"/>
+  <object id="63" x="48" y="80" width="24" height="8"/>
+  <object id="64" x="8" y="64" width="24" height="40"/>
+  <object id="65" x="8" y="8" width="24" height="32"/>
+  <object id="66" x="104" y="8" width="16" height="32"/>
+  <object id="69" x="80" y="64" width="8" height="24"/>
+ </objectgroup>
+ <objectgroup id="2" name="entities">
+  <object id="1" type="SPAWN" x="88" y="96" width="8" height="8"/>
+  <object id="2" type="LOCK" x="8" y="48" width="8" height="8"/>
+  <object id="42" type="SWITCH" x="112" y="48" width="8" height="8">
+   <properties>
+    <property name="color" value="GREEN"/>
+   </properties>
+  </object>
+  <object id="46" type="SWITCH_WALL" x="24" y="40" width="8" height="24">
+   <properties>
+    <property name="color" value="GREEN"/>
+   </properties>
+  </object>
+  <object id="50" type="FENCE" x="80" y="40" width="8" height="24"/>
+  <object id="56" type="FENCE" x="48" y="48" width="16" height="8"/>
+ </objectgroup>
+</map>

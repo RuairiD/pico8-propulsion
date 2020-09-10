@@ -7,20 +7,23 @@ HEIGHT = 14
 ENTITY_FORMAT =  "{entityType}, {x}, {y}, {width}, {height}, {{ {props} }}"
 WALL_FORMAT =  "{x}, {y}, {width}, {height}"
 
+# Levels are rated out of 5; 1 is easy, 5 is hard.
 LEVELS = [
-    'maps/level1.tmx',
+    'maps/level1.tmx', # 1
     # Introduce bouncing.
-    'maps/level2.tmx',
-    'maps/level5.tmx',
+    'maps/level2.tmx', # 1
+    'maps/level5.tmx', # 2
     # Introduce switches
-    'maps/level3.tmx',
-    'maps/level6.tmx',
-    'maps/level7.tmx',
+    'maps/level3.tmx', # 2
+    'maps/level6.tmx', # 3
+    'maps/level7.tmx', # 3
     # Introduce fences
-    'maps/demo2.tmx',
-    'maps/level4.tmx',
-    'maps/demo.tmx',
-    'maps/level8.tmx',
+    'maps/demo2.tmx', # 2
+    'maps/level4.tmx', # 2
+    'maps/demo.tmx', # 2
+    'maps/level8.tmx', # 3
+    'maps/level9.tmx', # 3
+    'maps/level10.tmx', # 4
 ]
 
 
