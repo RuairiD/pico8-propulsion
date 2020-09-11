@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.4" tiledversion="1.4.2" orientation="orthogonal" renderorder="right-down" width="16" height="14" tilewidth="8" tileheight="8" infinite="0" nextlayerid="5" nextobjectid="120">
+ <editorsettings>
+  <export format="json"/>
+ </editorsettings>
+ <properties>
+  <property name="maxBullets" type="int" value="2"/>
+  <property name="medalBullets" type="int" value="1"/>
+ </properties>
+ <tileset firstgid="1" source="../sprites.tsx"/>
+ <layer id="1" name="tiles" width="16" height="14">
+  <data encoding="csv">
+9,29,13,8,12,29,29,13,8,8,12,29,29,13,12,10,
+27,6,55,7,5,6,55,7,6,4,6,23,23,7,5,41,
+8,5,21,3,20,74,21,6,4,19,7,42,44,6,22,27,
+8,39,2,21,75,76,44,74,19,7,75,59,74,5,21,11,
+11,19,7,74,42,45,44,58,45,44,18,42,59,38,7,27,
+41,3,7,61,60,11,74,17,17,17,8,60,74,21,5,8,
+41,39,75,59,74,27,58,43,17,5,8,17,77,44,39,8,
+27,21,5,75,92,8,5,60,6,22,11,17,60,6,20,11,
+8,6,22,74,60,11,19,23,7,21,41,17,3,23,7,41,
+11,5,21,61,17,25,29,13,8,12,26,17,21,3,7,41,
+27,19,4,58,44,17,17,17,42,45,44,5,6,20,5,27,
+8,5,21,6,55,7,3,7,60,5,3,20,3,7,39,8,
+11,19,23,7,21,6,20,6,23,20,21,6,20,6,20,11,
+25,29,13,8,8,12,13,8,8,12,29,29,13,12,29,26
+</data>
+ </layer>
+ <objectgroup id="2" name="entities">
+  <object id="1" type="SPAWN" x="60" y="96" width="8" height="8"/>
+  <object id="88" type="LOCK" x="60" y="52" width="8" height="8"/>
+  <object id="113" type="PLATFORM" x="88" y="32" width="32" height="8">
+   <properties>
+    <property name="isVertical" type="bool" value="false"/>
+    <property name="maxPos" type="int" value="88"/>
+    <property name="minPos" type="int" value="8"/>
+   </properties>
+  </object>
+ </objectgroup>
+ <objectgroup color="#21ff06" id="4" name="walls">
+  <object id="116" x="40" y="40" width="8" height="40"/>
+  <object id="118" x="40" y="72" width="48" height="8"/>
+  <object id="119" x="80" y="40" width="8" height="40"/>
+ </objectgroup>
+</map>

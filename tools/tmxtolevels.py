@@ -24,7 +24,12 @@ LEVELS = [
     'maps/level8.tmx', # 3
     'maps/level9.tmx', # 3
     'maps/level11.tmx', # 3
+    'maps/level12.tmx', # 3
     'maps/level10.tmx', # 4
+    # Introduce platforms
+    'maps/level13.tmx', # 2
+    'maps/level14.tmx', # 3
+    'maps/level15.tmx', # 5
 ]
 
 
@@ -106,7 +111,7 @@ def convert_walls(map_root):
 
     if not walls_group:
         print("Could not find walls in map file. Is this a Tiled .tmx file?")
-        return
+        return "walls = '',"
 
     output = "walls = '"
     for wall in walls_group:

@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.4" tiledversion="1.4.2" orientation="orthogonal" renderorder="right-down" width="16" height="14" tilewidth="8" tileheight="8" infinite="0" nextlayerid="5" nextobjectid="160">
+ <editorsettings>
+  <export format="json"/>
+ </editorsettings>
+ <properties>
+  <property name="maxBullets" type="int" value="4"/>
+  <property name="medalBullets" type="int" value="2"/>
+ </properties>
+ <tileset firstgid="1" source="../sprites.tsx"/>
+ <layer id="1" name="tiles" width="16" height="14">
+  <data encoding="csv">
+8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,
+8,3,23,7,3,7,5,6,23,23,7,8,3,23,7,8,
+8,21,5,6,20,6,54,7,74,6,4,8,21,6,4,8,
+8,3,20,42,44,42,44,74,58,43,39,8,3,7,21,8,
+8,21,5,61,75,59,75,76,75,45,43,6,20,5,8,8,
+8,6,22,60,74,18,17,17,75,45,60,42,44,38,7,8,
+8,5,21,42,59,17,17,17,17,17,60,61,18,21,5,8,
+8,19,4,60,74,17,17,17,17,17,17,60,8,2,39,8,
+8,5,21,42,59,17,17,17,74,17,17,75,44,6,20,8,
+8,39,5,60,75,77,44,75,92,42,45,44,3,23,7,8,
+8,39,19,23,7,60,6,4,60,60,3,4,21,5,8,8,
+8,21,3,7,5,6,4,19,7,5,19,20,5,19,4,8,
+8,6,20,6,54,7,19,7,6,54,7,6,54,7,21,8,
+8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8
+</data>
+ </layer>
+ <objectgroup id="2" name="entities">
+  <object id="1" type="SPAWN" x="100" y="95" width="8" height="8"/>
+  <object id="88" type="LOCK" x="104" y="12" width="8" height="8"/>
+  <object id="134" type="FENCE" x="88" y="32" width="8" height="72"/>
+  <object id="138" type="PLATFORM" x="24" y="16" width="8" height="16">
+   <properties>
+    <property name="isVertical" type="bool" value="true"/>
+    <property name="maxPos" type="int" value="88"/>
+    <property name="minPos" type="int" value="8"/>
+   </properties>
+  </object>
+  <object id="145" type="SWITCH_WALL" x="96" y="24" width="24" height="8">
+   <properties>
+    <property name="color" value="RED"/>
+   </properties>
+  </object>
+  <object id="146" type="SWITCH_WALL" x="104" y="56" width="16" height="8">
+   <properties>
+    <property name="color" value="GREEN"/>
+   </properties>
+  </object>
+  <object id="147" type="SWITCH_WALL" x="96" y="80" width="16" height="8">
+   <properties>
+    <property name="color" value="BLUE"/>
+   </properties>
+  </object>
+  <object id="148" type="SWITCH" x="60" y="92" width="8" height="8">
+   <properties>
+    <property name="color" value="BLUE"/>
+   </properties>
+  </object>
+  <object id="149" type="SWITCH" x="36" y="50" width="8" height="8">
+   <properties>
+    <property name="color" value="GREEN"/>
+   </properties>
+  </object>
+  <object id="150" type="SWITCH" x="12" y="12" width="8" height="8">
+   <properties>
+    <property name="color" value="RED"/>
+   </properties>
+  </object>
+  <object id="158" type="PLATFORM" x="48" y="48" width="8" height="16">
+   <properties>
+    <property name="isVertical" type="bool" value="true"/>
+    <property name="maxPos" type="int" value="88"/>
+    <property name="minPos" type="int" value="8"/>
+   </properties>
+  </object>
+  <object id="159" type="PLATFORM" x="72" y="80" width="8" height="16">
+   <properties>
+    <property name="isVertical" type="bool" value="true"/>
+    <property name="maxPos" type="int" value="88"/>
+    <property name="minPos" type="int" value="8"/>
+   </properties>
+  </object>
+ </objectgroup>
+ <objectgroup color="#21ff06" id="4" name="walls">
+  <object id="152" x="88" y="0" width="8" height="32"/>
+  <object id="153" x="96" y="56" width="8" height="8"/>
+  <object id="154" x="112" y="80" width="16" height="8"/>
+  <object id="156" x="112" y="32" width="8" height="8"/>
+ </objectgroup>
+</map>

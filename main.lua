@@ -209,6 +209,47 @@ function Fence:draw()
 end
 
 
+local Platform = Wall:extend()
+
+function Platform:new(x, y, width, height, isVertical, minPos, maxPos)
+    Platform.super.new(self, x, y, width, height)
+    self.isVertical = isVertical
+    self.velX = 0
+    self.velY = 0
+    if self.isVertical then
+        self.velY = 1
+    else
+        self.velX = 1
+    end
+    self.minPos = minPos
+    self.maxPos = maxPos
+    self.direction = 1
+end
+
+function Platform:update()
+    self.x = self.x + self.velX * self.direction
+    self.y = self.y + self.velY * self.direction
+    if self.isVertical then
+        if self.y <= self.minPos or self.y >= self.maxPos then
+            self.direction = self.direction * -1
+        end
+    else
+        if self.x <= self.minPos or self.x >= self.maxPos then
+            self.direction = self.direction * -1
+        end
+    end
+    self.x, self.y, _, _ = bumpWorld:move(self, self.x, self.y)
+end
+
+function Platform:draw()
+    for xi=0, self.width - 1, 8 do
+        for yi=0, self.height - 1, 8 do
+            spr(67, self.x + xi, self.y + yi)
+        end
+    end
+end
+
+
 local SwitchWall = Wall:extend()
 SwitchWall.FILL_PATTERNS = {
     '0b1111000000000000.1',
@@ -471,13 +512,23 @@ function Player:update()
     self.shownSign = nil
     for _, collision in ipairs(collisions) do
         if collision.other:is(Wall) then
-            -- Player has either landed or bonked wall above.
-            if collision.normal.y ~= 0 then
+            if collision.normal.y == 1 then
+                -- Player has bonked wall above.
+                self.velY = self.velY * -0.5
+            elseif collision.normal.y == -1 then
+                -- Player has landed!
+                self.onGround = true
                 self.velY = 0
             end
-            -- Player has landed!
-            if collision.normal.y == -1 then
-                self.onGround = true
+
+            if collision.other:is(Platform) then
+                self.x, self.y, _, _ = bumpWorld:move(
+                    self,
+                    -- *2 to account for player only hitting platform every other frame
+                    self.x + collision.other.velX * collision.other.direction * 2,
+                    self.y + collision.other.velY * collision.other.direction * 2,
+                    self.moveFilter
+                )
             end
         elseif collision.other:is(Sign) then
             self.shownSign = collision.other
@@ -575,6 +626,8 @@ local function resetLevel(levelNumber)
             add(entities, SwitchWall(x, y, width, height, SWITCH_COLORS[props.color]))
         elseif entitiesData[i] == "FENCE" then
             add(entities, Fence(x, y, width, height))
+        elseif entitiesData[i] == "PLATFORM" then
+            add(entities, Platform(x, y, width, height, props.isVertical == "true", tonum(props.minPos), tonum(props.maxPos)))
         elseif entitiesData[i] == "SIGN" then
             add(entities, Sign(
                 x, y,
@@ -865,7 +918,7 @@ local SELECT_TIMER_MAX = 240
 local cursorX = 0
 local cursorY = 0
 local selectTimer
-local selectWidth = 6
+local selectWidth = 5
 function initSelect()
     selectTimer = 0
 end
@@ -923,13 +976,13 @@ function drawSelect()
     map(16, 0, 0, 0)
     camera()
     printCentre(LEVEL_SELECT_TEXT, 8, 7)
-    for x=0,selectWidth - 1 do
-        for y=0,selectWidth - 1 do
+    for x=0, selectWidth - 1 do
+        for y=0, selectWidth - 1 do
             local levelNumber = y * selectWidth + x + 1
             local isComplete, hasMedal = loadLevelProgress(levelNumber)
             drawLevelIcon(
-                12 + x * 18,
-                16 + y * 18,
+                21 + x * 18,
+                24 + y * 18,
                 levelNumber,
                 x == cursorX and y == cursorY,
                 isComplete,
