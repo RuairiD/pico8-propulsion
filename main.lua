@@ -224,9 +224,11 @@ function Platform:new(x, y, width, height, isVertical, minPos, maxPos)
     self.minPos = minPos
     self.maxPos = maxPos
     self.direction = 1
+    self.frame = 0
 end
 
 function Platform:update()
+    self.frame = self.frame + 1
     self.x = self.x + self.velX * self.direction
     self.y = self.y + self.velY * self.direction
     if self.isVertical then
@@ -238,13 +240,21 @@ function Platform:update()
             self.direction = self.direction * -1
         end
     end
-    self.x, self.y, _, _ = bumpWorld:move(self, self.x, self.y)
+    self.x, self.y, _, _ = bumpWorld:move(self, self.x, self.y, function (self, other)
+        if other:is(Lock) or other:is(Switch) then
+            return nil
+        end
+    end)
 end
 
 function Platform:draw()
+    local spriteIndex = 67
+    if flr(self.frame / 30) % 2 == 0 then
+        spriteIndex = 68
+    end
     for xi=0, self.width - 1, 8 do
         for yi=0, self.height - 1, 8 do
-            spr(67, self.x + xi, self.y + yi)
+            spr(spriteIndex, self.x + xi, self.y + yi)
         end
     end
 end
@@ -565,12 +575,6 @@ function Player:draw()
         lineColorCode
     )
 end
-
--- START MAIN
-local WALL_TILES = {
-    1, 2, 3, 4, 5, 6,
-    18, 19, 20, 21,
-}
 
 local function isInTable(x, xs)
     for cx in all(xs) do

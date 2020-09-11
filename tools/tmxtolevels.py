@@ -29,6 +29,7 @@ LEVELS = [
     # Introduce platforms
     'maps/level13.tmx', # 2
     'maps/level14.tmx', # 3
+    'maps/level16.tmx', # 3
     'maps/level15.tmx', # 5
 ]
 

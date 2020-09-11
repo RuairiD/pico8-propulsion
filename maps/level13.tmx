@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <map version="1.4" tiledversion="1.4.2" orientation="orthogonal" renderorder="right-down" width="16" height="14" tilewidth="8" tileheight="8" infinite="0" nextlayerid="5" nextobjectid="120">
  <editorsettings>
-  <export format="json"/>
+  <export target="." format="json"/>
  </editorsettings>
  <properties>
   <property name="maxBullets" type="int" value="2"/>
@@ -29,7 +29,7 @@
  <objectgroup id="2" name="entities">
   <object id="1" type="SPAWN" x="60" y="96" width="8" height="8"/>
   <object id="88" type="LOCK" x="60" y="52" width="8" height="8"/>
-  <object id="113" type="PLATFORM" x="88" y="32" width="32" height="8">
+  <object id="113" type="PLATFORM" x="48" y="32" width="32" height="8">
    <properties>
     <property name="isVertical" type="bool" value="false"/>
     <property name="maxPos" type="int" value="88"/>
