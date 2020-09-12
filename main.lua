@@ -176,6 +176,7 @@ function Sign:draw()
         if tooltipX < 2 then
             tooltipX = 2
         end
+        rectfill(tooltipX - 1, self.y - 15, tooltipX + #Sign.TOOLTIP * 4 + 3, self.y - 9, 0)
         print(Sign.TOOLTIP, tooltipX, self.y - 14, 7)
     end
 end
@@ -605,6 +606,7 @@ end
 
 local function resetLevel(levelNumber)
     local levelData = LEVELS[levelNumber]
+    showingText = false
     bumpWorld = bump.newWorld(8)
     entities = {}
     switches = {}
@@ -658,7 +660,6 @@ end
 
 function initGame(initLevel)
     cameraShake = 0
-    showingText = false
     currentLevel = initLevel or 1
     resetLevel(currentLevel)
 end
@@ -743,17 +744,17 @@ local SIGN_LINE_LENGTH = 92
 function drawSignText(text)
     local words = split(text, ' ')
     local line = ''
-    local y = 19
+    local y = 35
     for word in all(words) do
         if #(line..word) * 4 < SIGN_LINE_LENGTH then
             line = line..word.." "
         else
-            print(line, 19, y, 7)
+            print(line, 19, y, 11)
             line = word.." "
             y = y + 8
         end
     end
-    print(line, 19, y, 7)
+    print(line, 19, y, 11)
 end
 
 
@@ -782,6 +783,7 @@ function drawHud()
     if showingText then
         rectfill(16, 16, 111, 95, 7)
         rectfill(17, 17, 110, 94, 0)
+        printCentre('info', 22, 11)
         drawSignText(player.shownSign.text)
     end
 

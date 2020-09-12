@@ -52,7 +52,7 @@
   </object>
   <object id="52" type="SIGN" x="96" y="96" width="8" height="8">
    <properties>
-    <property name="text" value="feeling confident? each level has an unlockable medal for economic ammunition distribution (read: get a prize if you don't use a lot of bullets)"/>
+    <property name="text" value="feeling confident? use your bullets sparingly to win the medal for each level."/>
    </properties>
   </object>
  </objectgroup>
