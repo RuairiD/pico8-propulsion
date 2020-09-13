@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.4" tiledversion="1.4.2" orientation="orthogonal" renderorder="right-down" width="16" height="14" tilewidth="8" tileheight="8" infinite="0" nextlayerid="4" nextobjectid="48">
+ <properties>
+  <property name="maxBullets" type="int" value="2"/>
+  <property name="medalBullets" type="int" value="1"/>
+ </properties>
+ <tileset firstgid="1" source="../sprites.tsx"/>
+ <layer id="1" name="tiles" width="16" height="14">
+  <data encoding="csv">
+9,13,8,12,29,29,13,8,12,29,29,13,12,13,12,10,
+41,6,55,7,6,23,23,7,5,6,23,4,5,6,4,41,
+27,5,21,3,7,75,43,6,54,7,5,21,38,7,39,27,
+8,39,6,20,74,17,58,44,75,43,19,4,21,5,21,8,
+8,39,5,8,61,17,17,17,17,58,44,21,8,19,4,11,
+11,21,39,75,59,17,17,17,17,17,17,75,45,43,21,41,
+41,6,20,75,43,17,17,17,17,17,17,42,44,60,5,41,
+41,6,4,8,61,17,17,17,17,17,17,61,8,3,20,27,
+27,5,19,7,60,74,17,17,17,17,17,60,74,21,5,8,
+8,38,7,75,43,58,43,75,77,44,17,75,76,44,39,8,
+8,21,5,8,58,44,60,5,60,75,45,43,8,6,20,8,
+8,6,54,7,6,4,6,22,2,3,7,60,5,3,4,11,
+11,6,23,23,7,19,7,21,6,20,6,23,20,19,20,41,
+25,29,13,8,12,29,29,13,8,12,29,29,13,8,12,26
+</data>
+ </layer>
+ <objectgroup color="#21ff06" id="3" name="walls">
+  <object id="41" x="24" y="32" width="8" height="8"/>
+  <object id="42" x="24" y="56" width="8" height="8"/>
+  <object id="43" x="24" y="80" width="8" height="8"/>
+  <object id="44" x="96" y="80" width="8" height="8"/>
+  <object id="45" x="96" y="56" width="8" height="8"/>
+  <object id="46" x="96" y="32" width="8" height="8"/>
+ </objectgroup>
+ <objectgroup id="2" name="entities">
+  <object id="2" type="LOCK" x="80" y="48" width="8" height="8"/>
+  <object id="25" type="LOCK" x="40" y="24" width="8" height="8"/>
+  <object id="37" type="LOCK" x="60" y="72" width="8" height="8"/>
+  <object id="38" type="PLATFORM" x="40" y="32" width="24" height="8">
+   <properties>
+    <property name="isVertical" type="bool" value="false"/>
+    <property name="maxPos" type="int" value="72"/>
+    <property name="minPos" type="int" value="32"/>
+   </properties>
+  </object>
+  <object id="39" type="PLATFORM" x="64" y="56" width="24" height="8">
+   <properties>
+    <property name="isVertical" type="bool" value="false"/>
+    <property name="maxPos" type="int" value="72"/>
+    <property name="minPos" type="int" value="32"/>
+   </properties>
+  </object>
+  <object id="40" type="PLATFORM" x="52" y="80" width="24" height="8">
+   <properties>
+    <property name="isVertical" type="bool" value="false"/>
+    <property name="maxPos" type="int" value="72"/>
+    <property name="minPos" type="int" value="32"/>
+   </properties>
+  </object>
+  <object id="47" type="SPAWN" x="12" y="96" width="8" height="8"/>
+ </objectgroup>
+</map>

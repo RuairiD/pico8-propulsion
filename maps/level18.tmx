@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.4" tiledversion="1.4.2" orientation="orthogonal" renderorder="right-down" width="16" height="14" tilewidth="8" tileheight="8" infinite="0" nextlayerid="4" nextobjectid="37">
+ <properties>
+  <property name="maxBullets" type="int" value="3"/>
+  <property name="medalBullets" type="int" value="1"/>
+ </properties>
+ <tileset firstgid="1" source="../sprites.tsx"/>
+ <layer id="1" name="tiles" width="16" height="14">
+  <data encoding="csv">
+9,13,8,12,29,29,13,8,8,12,57,13,8,12,29,10,
+41,3,23,7,5,3,23,7,6,4,27,3,23,7,5,27,
+27,21,5,3,20,21,5,3,7,19,7,21,5,6,22,8,
+8,6,22,21,6,23,20,39,74,74,6,23,20,5,21,11,
+11,5,21,5,12,13,5,21,61,77,44,42,44,38,7,41,
+27,39,3,20,6,23,20,75,59,60,75,59,17,21,5,41,
+8,39,21,74,12,10,12,13,11,12,29,10,17,3,20,27,
+11,21,5,61,8,25,13,12,56,13,8,27,17,21,5,8,
+41,3,20,58,44,74,17,17,17,17,17,17,6,23,20,8,
+41,21,5,75,45,59,17,74,75,45,43,17,6,55,7,11,
+27,5,19,23,7,75,45,59,5,5,60,42,44,21,5,27,
+8,39,6,55,7,3,7,6,22,39,75,59,3,7,39,11,
+11,19,7,21,6,20,6,7,21,19,7,6,20,6,20,41,
+25,29,13,12,29,29,13,8,8,8,12,29,29,13,12,26
+</data>
+ </layer>
+ <objectgroup color="#21ff06" id="3" name="walls">
+  <object id="33" x="32" y="48" width="64" height="16"/>
+  <object id="34" x="32" y="32" width="16" height="8"/>
+  <object id="35" x="80" y="8" width="8" height="8"/>
+ </objectgroup>
+ <objectgroup id="2" name="entities">
+  <object id="1" type="SPAWN" x="104" y="96" width="8" height="8"/>
+  <object id="2" type="LOCK" x="80" y="40" width="8" height="8"/>
+  <object id="22" type="FENCE" x="8" y="48" width="24" height="16"/>
+  <object id="23" type="FENCE" x="96" y="48" width="24" height="16"/>
+  <object id="25" type="LOCK" x="56" y="24" width="8" height="8"/>
+  <object id="26" type="LOCK" x="32" y="8" width="8" height="8"/>
+  <object id="27" type="FENCE" x="8" y="96" width="88" height="8"/>
+  <object id="28" type="FENCE" x="56" y="80" width="64" height="8"/>
+  <object id="29" type="FENCE" x="8" y="80" width="24" height="8"/>
+  <object id="32" type="FENCE" x="40" y="64" width="8" height="8"/>
+ </objectgroup>
+</map>

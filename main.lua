@@ -210,57 +210,6 @@ function Fence:draw()
 end
 
 
-local Platform = Wall:extend()
-
-function Platform:new(x, y, width, height, isVertical, minPos, maxPos)
-    Platform.super.new(self, x, y, width, height)
-    self.isVertical = isVertical
-    self.velX = 0
-    self.velY = 0
-    if self.isVertical then
-        self.velY = 1
-    else
-        self.velX = 1
-    end
-    self.minPos = minPos
-    self.maxPos = maxPos
-    self.direction = 1
-    self.frame = 0
-end
-
-function Platform:update()
-    self.frame = self.frame + 1
-    self.x = self.x + self.velX * self.direction
-    self.y = self.y + self.velY * self.direction
-    if self.isVertical then
-        if self.y <= self.minPos or self.y >= self.maxPos then
-            self.direction = self.direction * -1
-        end
-    else
-        if self.x <= self.minPos or self.x >= self.maxPos then
-            self.direction = self.direction * -1
-        end
-    end
-    self.x, self.y, _, _ = bumpWorld:move(self, self.x, self.y, function (self, other)
-        if other:is(Lock) or other:is(Switch) then
-            return nil
-        end
-    end)
-end
-
-function Platform:draw()
-    local spriteIndex = 67
-    if flr(self.frame / 30) % 2 == 0 then
-        spriteIndex = 68
-    end
-    for xi=0, self.width - 1, 8 do
-        for yi=0, self.height - 1, 8 do
-            spr(spriteIndex, self.x + xi, self.y + yi)
-        end
-    end
-end
-
-
 local SwitchWall = Wall:extend()
 SwitchWall.FILL_PATTERNS = {
     '0b1111000000000000.1',
@@ -497,7 +446,12 @@ function Player:update()
     end
 
     if btnp(4) and self.bullets > 0 then
-        add(bullets, Bullet(self.x + 2, self.y + 2, self.angle))
+        -- Start bullet a little ahead of centre
+        add(bullets, Bullet(
+            self.x + 2 + 4 * cos(self.angle),
+            self.y + 2 + 4 * sin(self.angle),
+            self.angle
+        ))
         cameraShake = 1
         self.bullets = self.bullets - 1
         sfx(59)
@@ -548,7 +502,7 @@ function Player:update()
 end
 
 local LINE_BUFFER = 10
-local LINE_LENGTH = 32
+local LINE_LENGTH = 64
 function Player:draw()
     palt(14, true)
     palt(0, false)
@@ -575,6 +529,58 @@ function Player:draw()
         self.y + 4 + LINE_LENGTH * sin(self.angle),
         lineColorCode
     )
+end
+
+
+local Platform = Wall:extend()
+
+function Platform:new(x, y, width, height, isVertical, minPos, maxPos)
+    Platform.super.new(self, x, y, width, height)
+    self.isVertical = isVertical
+    self.velX = 0
+    self.velY = 0
+    if self.isVertical then
+        self.velY = 1
+    else
+        self.velX = 1
+    end
+    self.minPos = minPos
+    self.maxPos = maxPos
+    self.direction = 1
+    self.frame = 0
+end
+
+function Platform:update()
+    self.frame = self.frame + 1
+    self.x = self.x + self.velX * self.direction
+    self.y = self.y + self.velY * self.direction
+    if self.isVertical then
+        if self.y <= self.minPos or self.y >= self.maxPos then
+            self.direction = self.direction * -1
+        end
+    else
+        if self.x <= self.minPos or self.x >= self.maxPos then
+            self.direction = self.direction * -1
+        end
+    end
+    self.x, self.y, _, _ = bumpWorld:move(self, self.x, self.y, function (self, other)
+        if other:is(Player) or (other:is(SwitchWall) and not other:isDisabled()) then
+            return 'slide'
+        end
+        return nil
+    end)
+end
+
+function Platform:draw()
+    local spriteIndex = 67
+    if flr(self.frame / 30) % 2 == 0 then
+        spriteIndex = 68
+    end
+    for xi=0, self.width - 1, 8 do
+        for yi=0, self.height - 1, 8 do
+            spr(spriteIndex, self.x + xi, self.y + yi)
+        end
+    end
 end
 
 local function isInTable(x, xs)

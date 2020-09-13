@@ -21,6 +21,7 @@ LEVELS = [
     'maps/demo2.tmx', # 2
     'maps/level4.tmx', # 2
     'maps/demo.tmx', # 2
+    'maps/level18.tmx', # 2
     'maps/level8.tmx', # 3
     'maps/level9.tmx', # 3
     'maps/level11.tmx', # 3
@@ -29,8 +30,10 @@ LEVELS = [
     # Introduce platforms
     'maps/level13.tmx', # 2
     'maps/level14.tmx', # 3
+    'maps/level19.tmx', # 3
     'maps/level16.tmx', # 3
     'maps/level17.tmx', # 3
+    'maps/level20.tmx', # 4
     'maps/level15.tmx', # 5
 ]
 
