@@ -482,24 +482,25 @@ function Player:update()
         if collision.other:is(Wall) then
             if collision.normal.y == 1 then
                 -- Player has bonked wall above.
-                -- 0.5 instead of 0 is a hack to push player down into floor on every frame,
-                -- ensuring accurate collision reporting (e.g. no skipped collisions where
-                -- player is just about hovering above)
-                self.velY = 0.5
+                self.velY = 0
             elseif collision.normal.y == -1 then
                 -- Player has landed!
                 self.onGround = true
-                self.velY = 0.5
-            end
+                self.velY = 0
 
-            if collision.other:is(Platform) then
-                self.x, self.y, _, _ = bumpWorld:move(
-                    self,
-                    -- *2 to account for player only hitting platform every other frame
-                    self.x + collision.other.velX * collision.other.direction,
-                    self.y + collision.other.velY * collision.other.direction,
-                    self.moveFilter
-                )
+                if collision.other:is(Platform) then
+                    self.x, self.y, _, _ = bumpWorld:move(
+                        self,
+                        -- *2 to account for player only hitting platform every other frame
+                        self.x + collision.other.velX * collision.other.direction,
+                        self.y + collision.other.velY * collision.other.direction,
+                        self.moveFilter
+                    )
+                    -- non-zero velY is a hack to push player down into floor on every frame,
+                    -- ensuring accurate collision reporting (e.g. no skipped collisions where
+                    -- player is just about hovering above)
+                    self.velY = GRAVITY
+                end
             end
         elseif collision.other:is(Sign) then
             self.shownSign = collision.other
