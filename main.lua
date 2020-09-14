@@ -196,6 +196,8 @@ function Wall:draw()
     -- rectfill(self.x, self.y, self.x + self.width - 1, self.y + self.height - 1, 7)
 end
 
+local Platform = Wall:extend()
+-- rest is below Player
 
 local Fence = Wall:extend()
 
@@ -479,19 +481,22 @@ function Player:update()
         if collision.other:is(Wall) then
             if collision.normal.y == 1 then
                 -- Player has bonked wall above.
-                self.velY = self.velY * -0.5
+                -- 0.5 instead of 0 is a hack to push player down into floor on every frame,
+                -- ensuring accurate collision reporting (e.g. no skipped collisions where
+                -- player is just about hovering above)
+                self.velY = 0.5
             elseif collision.normal.y == -1 then
                 -- Player has landed!
                 self.onGround = true
-                self.velY = 0
+                self.velY = 0.5
             end
 
             if collision.other:is(Platform) then
                 self.x, self.y, _, _ = bumpWorld:move(
                     self,
                     -- *2 to account for player only hitting platform every other frame
-                    self.x + collision.other.velX * collision.other.direction * 2,
-                    self.y + collision.other.velY * collision.other.direction * 2,
+                    self.x + collision.other.velX * collision.other.direction,
+                    self.y + collision.other.velY * collision.other.direction,
                     self.moveFilter
                 )
             end
@@ -531,8 +536,6 @@ function Player:draw()
     )
 end
 
-
-local Platform = Wall:extend()
 
 function Platform:new(x, y, width, height, isVertical, minPos, maxPos)
     Platform.super.new(self, x, y, width, height)
@@ -626,10 +629,12 @@ local function resetLevel(levelNumber)
         end
     end
     local entitiesData = levelData.entities
-    for i=1,#levelData.entities - 1,6 do
-        local x, y, width, height, props = entitiesData[i + 1], entitiesData[i + 2], entitiesData[i + 3], entitiesData[i + 4], entitiesData[i + 5]
+    for i=1,#levelData.entities - 1,3 do
+        local pos, props = entitiesData[i + 1], entitiesData[i + 2]
+        pos = split(pos)
+        local x, y, width, height = tonum(pos[1]), tonum(pos[2]), tonum(pos[3]), tonum(pos[4])
         if entitiesData[i] == "SPAWN" then
-            player = Player(entitiesData[i + 1], y, levelData.maxBullets)
+            player = Player(x, y, levelData.maxBullets)
         elseif entitiesData[i] == "LOCK" then
             add(locks, Lock(x, y))
         elseif entitiesData[i] == "SWITCH" then
@@ -668,6 +673,12 @@ function initGame(initLevel)
     cameraShake = 0
     currentLevel = initLevel or 1
     resetLevel(currentLevel)
+    menuitem(1, "reset level", (function ()
+        levelTransitionTimer = LEVEL_TRANSITION_TIMER_MAX
+        levelTransitionCallback = (function ()
+            resetLevel(currentLevel)
+        end)
+    end))
 end
 
 function updateSelf(self)
@@ -742,7 +753,7 @@ end
 
 
 function drawHudText(text, x, y)
-    print(text, x, y + 1, 5)
+    print(text, x, y + 1, 0)
     print(text, x, y, 7)
 end
 
@@ -852,6 +863,12 @@ function drawGame()
     if currentLevel == 1 then
         print('\x8b', 2 * 8 - 3, 12 * 8 + 1, 7)
         print('\x91', 4 * 8 + 5, 12 * 8 + 1, 7)
+
+        spr(134, 36, 84)
+        print('you', 46, 80, 7)
+        spr(135, 60, 28)
+        print('shoot', 54, 40, 7)
+        print('this', 56, 46, 7)
     end
     foreach(entities, drawSelf)
     foreach(switches, drawSelf)
@@ -871,6 +888,7 @@ function initTitle()
     add(entities, Wall(160, -32, 8, 192))
     add(entities, Wall(160, 160, 192, 8))
     add(entities, Wall(24, 48, 80, 32))
+    menuitem(1)
 end
 
 function updateTitle()
@@ -931,8 +949,10 @@ local cursorX = 0
 local cursorY = 0
 local selectTimer
 local selectWidth = 5
+
 function initSelect()
     selectTimer = 0
+    menuitem(1)
 end
 
 function updateSelect()

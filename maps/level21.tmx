@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.4" tiledversion="1.4.2" orientation="orthogonal" renderorder="right-down" width="16" height="14" tilewidth="8" tileheight="8" infinite="0" nextlayerid="4" nextobjectid="64">
+ <editorsettings>
+  <export format="json"/>
+ </editorsettings>
+ <properties>
+  <property name="maxBullets" type="int" value="3"/>
+  <property name="medalBullets" type="int" value="2"/>
+ </properties>
+ <tileset firstgid="1" source="../sprites.tsx"/>
+ <layer id="1" name="tiles" width="16" height="14">
+  <data encoding="csv">
+9,29,13,8,8,12,29,29,13,8,12,13,8,12,29,10,
+27,3,23,7,5,3,4,6,55,7,3,7,74,6,4,27,
+8,21,6,23,20,19,20,74,21,6,20,42,59,5,39,8,
+11,5,75,43,75,43,8,77,44,42,44,60,8,39,21,11,
+41,19,4,61,74,58,44,60,75,59,17,74,6,20,5,41,
+41,5,21,60,77,44,17,17,17,17,17,58,43,6,22,41,
+27,39,5,8,60,74,17,17,17,8,17,17,60,74,21,27,
+8,39,38,7,42,59,17,17,17,17,17,17,17,77,44,11,
+11,21,21,5,60,17,17,17,17,17,17,42,44,60,5,27,
+27,3,7,39,74,17,8,42,45,44,74,61,8,3,20,8,
+8,39,6,20,58,45,44,60,75,45,59,60,5,21,5,11,
+11,21,3,7,3,7,5,6,4,6,55,7,38,7,39,27,
+41,6,20,6,20,6,54,7,19,7,21,2,21,6,20,11,
+25,13,8,12,29,29,13,12,29,29,13,8,8,12,29,26
+</data>
+ </layer>
+ <objectgroup color="#21ff06" id="3" name="walls">
+  <object id="58" x="24" y="48" width="8" height="8"/>
+  <object id="59" x="48" y="72" width="8" height="8"/>
+  <object id="60" x="48" y="24" width="8" height="8"/>
+  <object id="61" x="72" y="48" width="8" height="8"/>
+  <object id="62" x="96" y="72" width="8" height="8"/>
+  <object id="63" x="96" y="24" width="8" height="8"/>
+ </objectgroup>
+ <objectgroup id="2" name="entities">
+  <object id="1" type="SPAWN" x="64" y="96" width="8" height="8"/>
+  <object id="41" type="LOCK" x="24" y="24" width="8" height="8"/>
+  <object id="42" type="LOCK" x="48" y="48" width="8" height="8"/>
+  <object id="45" type="LOCK" x="72" y="72" width="8" height="8"/>
+  <object id="47" type="LOCK" x="96" y="48" width="8" height="8"/>
+  <object id="48" type="SWITCH" x="72" y="24" width="8" height="8">
+   <properties>
+    <property name="color" value="RED"/>
+   </properties>
+  </object>
+  <object id="49" type="SWITCH" x="24" y="72" width="8" height="8">
+   <properties>
+    <property name="color" value="GREEN"/>
+   </properties>
+  </object>
+  <object id="50" type="SWITCH_WALL" x="16" y="16" width="24" height="8">
+   <properties>
+    <property name="color" value="RED"/>
+   </properties>
+  </object>
+  <object id="51" type="SWITCH_WALL" x="16" y="32" width="24" height="8">
+   <properties>
+    <property name="color" value="RED"/>
+   </properties>
+  </object>
+  <object id="52" type="SWITCH_WALL" x="16" y="24" width="8" height="8">
+   <properties>
+    <property name="color" value="RED"/>
+   </properties>
+  </object>
+  <object id="53" type="SWITCH_WALL" x="32" y="24" width="8" height="8">
+   <properties>
+    <property name="color" value="RED"/>
+   </properties>
+  </object>
+  <object id="54" type="SWITCH_WALL" x="64" y="64" width="24" height="8">
+   <properties>
+    <property name="color" value="GREEN"/>
+   </properties>
+  </object>
+  <object id="55" type="SWITCH_WALL" x="64" y="80" width="24" height="8">
+   <properties>
+    <property name="color" value="GREEN"/>
+   </properties>
+  </object>
+  <object id="56" type="SWITCH_WALL" x="64" y="72" width="8" height="8">
+   <properties>
+    <property name="color" value="GREEN"/>
+   </properties>
+  </object>
+  <object id="57" type="SWITCH_WALL" x="80" y="72" width="8" height="8">
+   <properties>
+    <property name="color" value="GREEN"/>
+   </properties>
+  </object>
+ </objectgroup>
+</map>
