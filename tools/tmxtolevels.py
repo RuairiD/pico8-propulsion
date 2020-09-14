@@ -32,10 +32,10 @@ LEVELS = [
     # Introduce platforms
     'maps/level13.tmx', # 2
     'maps/level14.tmx', # 3
+    'maps/level17.tmx', # 3
     'maps/level19.tmx', # 3
     'maps/level22.tmx', # 3
     'maps/level16.tmx', # 3
-    'maps/level17.tmx', # 3
     'maps/level20.tmx', # 4
     'maps/level15.tmx', # 5
 ]

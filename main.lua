@@ -1,3 +1,4 @@
+local VERSION = 'v0.1.0'
 local LEVEL_WIDTH = 16
 local LEVEL_HEIGHT = 14
 local GRAVITY = 0.125
@@ -942,6 +943,9 @@ function drawTitle()
 
     local textColor = pressStartColors[flr(titleTimer/8) % #pressStartColors + 1]
     printCentre(pressStartText, 11 * 8, textColor)
+
+    printCentre(VERSION, 122, 0)
+    printCentre(VERSION, 121, 7)
 end
 
 local SELECT_TIMER_MAX = 240
