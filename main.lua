@@ -1,45 +1,31 @@
-local VERSION = 'v0.2.1'
-local LEVEL_WIDTH = 16
-local LEVEL_HEIGHT = 14
-local GRAVITY = 0.125
-local LEVEL_TRANSITION_TIMER_MAX = 60
-local SHOWN_SIGN_TIMER_MAX = 10
-local TITLE_TIMER_MAX = 120
-local LEVEL_COMPLETE_TIMER_MAX = 30
+VERSION = 'v0.2.1'
+LEVEL_WIDTH = 16
+LEVEL_HEIGHT = 14
+GRAVITY = 0.125
+LEVEL_TRANSITION_TIMER_MAX = 60
+LEVEL_TRANSITION_TIMER_MAX_HALF = 30
+SHOWN_SIGN_TIMER_MAX = 10
+LEVEL_COMPLETE_TIMER_MAX = 30
 
-local player
-local currentLevel
-local bumpWorld
-local entities
-local bullets
-local switches
-local cameraShake
-local locks
-local levelTransitionTimer
-local showingText
-local levelTransitionCallback
-local titleTimer
-local levelCompleteTimer
-
-local STATES = {
+STATES = {
+    INTRO = 'INTRO',
     TITLE = 'TITLE',
     GAME = 'GAME',
     SELECT = 'SELECT',
 }
-local state
 
-local function printCentre(text, y, color)
+function printCentre(text, y, color)
     print(text, (128 - #text * 4)/2, y, color)
 end
 
-local function loadLevelProgress(levelNumber)
+function loadLevelProgress(levelNumber)
     local data = dget(levelNumber - 1)
     local isComplete = (data & 1) == 1
     local hasMedal = (data & 2) == 2
     return isComplete, hasMedal
 end
 
-local function saveLevelProgress(levelNumber, isComplete, hasMedal)
+function saveLevelProgress(levelNumber, isComplete, hasMedal)
     -- Careful not to overwrite existing data; if the player already has a medal,
     -- missing it on a retry shouldn't remove it.
     local existingIsComplete, existingHasMedal = loadLevelProgress(levelNumber)
@@ -53,7 +39,7 @@ local function saveLevelProgress(levelNumber, isComplete, hasMedal)
     dset(levelNumber - 1, data)
 end
 
-local Entity = Object:extend()
+Entity = Object:extend()
 
 function Entity:new(x, y, width, height)
     self.x = x
@@ -86,13 +72,13 @@ function Entity:destroy()
 end
 
 
-local SWITCH_COLORS = {
+SWITCH_COLORS = {
     RED = 8,
     GREEN = 11,
     BLUE = 12,
 }
 
-local Switch = Entity:extend()
+Switch = Entity:extend()
 
 function Switch:new(x, y, color)
     Switch.super.new(self, x, y, 8, 8)
@@ -119,7 +105,7 @@ function Switch:getBulletCollisionType()
     return 'cross'
 end
 
-local Lock = Entity:extend()
+Lock = Entity:extend()
 
 function Lock:new(x, y)
     Switch.super.new(self, x, y, 8, 8)
@@ -152,7 +138,7 @@ function Lock:getBulletCollisionType()
 end
 
 
-local Sign = Entity:extend()
+Sign = Entity:extend()
 Sign.TOOLTIP = 'hold \x83 to read'
 
 function Sign:new(x, y, text)
@@ -191,16 +177,16 @@ function Sign:getBulletCollisionType()
 end
 
 
-local Wall = Entity:extend()
+Wall = Entity:extend()
 
 function Wall:draw()
     -- rectfill(self.x, self.y, self.x + self.width - 1, self.y + self.height - 1, 7)
 end
 
-local Platform = Wall:extend()
+Platform = Wall:extend()
 -- rest is below Player
 
-local Fence = Wall:extend()
+Fence = Wall:extend()
 
 function Fence:getBulletCollisionType()
     return nil
@@ -213,7 +199,7 @@ function Fence:draw()
 end
 
 
-local SwitchWall = Wall:extend()
+SwitchWall = Wall:extend()
 SwitchWall.FILL_PATTERNS = {
     '0b1111000000000000.1',
     '0b0000111100000000.1',
@@ -262,7 +248,7 @@ function SwitchWall:draw()
 end
 
 
-local Bullet = Entity:extend()
+Bullet = Entity:extend()
 -- _ used instead of . to allow these vars to be minified
 Bullet.SPEED = 3
 Bullet.MAX_BOUNCES = 4
@@ -274,7 +260,7 @@ Bullet.COLORS = {
     [2] = { 9, 8 },
     [3] = { 8, 2 },
 }
-Bullet.MAX_LIFE = (8 * 32/Bullet.SPEED) * Bullet.MAX_BOUNCES + Bullet.DEATH_TIMER_MAX
+Bullet.MAX_LIFE = (256/Bullet.SPEED) * Bullet.MAX_BOUNCES + Bullet.DEATH_TIMER_MAX
 
 function Bullet:new(x, y, angle, isTitleScreen)
     Bullet.super.new(self, x, y, 4, 4)
@@ -395,7 +381,7 @@ function Bullet:draw()
     end
 end
 
-local Player = Entity:extend()
+Player = Entity:extend()
 Player.SPEED = 1
 
 function Player:new(x, y, bullets)
@@ -508,8 +494,8 @@ function Player:update()
     end
 end
 
-local LINE_BUFFER = 10
-local LINE_LENGTH = 64
+LINE_BUFFER = 10
+LINE_LENGTH = 64
 function Player:draw()
     palt(14, true)
     palt(0, false)
@@ -529,11 +515,13 @@ function Player:draw()
     if btn(5) then
         lineColorCode = 10
     end
+    local cosAngle = cos(self.angle)
+    local sinAngle = sin(self.angle)
     line(
-        self.x + 4 + LINE_BUFFER * cos(self.angle),
-        self.y + 4 + LINE_BUFFER * sin(self.angle),
-        self.x + 4 + LINE_LENGTH * cos(self.angle),
-        self.y + 4 + LINE_LENGTH * sin(self.angle),
+        self.x + 4 + LINE_BUFFER * cosAngle,
+        self.y + 4 + LINE_BUFFER * sinAngle,
+        self.x + 4 + LINE_LENGTH * cosAngle,
+        self.y + 4 + LINE_LENGTH * sinAngle,
         lineColorCode
     )
 end
@@ -588,7 +576,7 @@ function Platform:draw()
     end
 end
 
-local function getActiveGates()
+function getActiveGates()
     local count = 0
     for lock in all(locks) do
         if not lock.isDisabled then
@@ -598,22 +586,19 @@ local function getActiveGates()
     return count
 end
 
-local function isLevelComplete()
+function isLevelComplete()
     return getActiveGates() == 0
 end
 
-local function hasMedalForLevel()
+function hasMedalForLevel()
     return isLevelComplete() and (LEVELS[currentLevel].maxBullets - player.bullets) <= LEVELS[currentLevel].medalBullets
 end
 
-local function resetLevel(levelNumber)
+function resetLevel(levelNumber)
     local levelData = LEVELS[levelNumber]
     showingText = false
     bumpWorld = bump.newWorld(8)
-    entities = {}
-    switches = {}
-    locks = {}
-    bullets = {}
+    entities, switches, locks, bullets = {}, {}, {}, {}
     for y=0, LEVEL_HEIGHT - 1 do
         for x=0, LEVEL_WIDTH - 1 do
             local tileIndex = 2 * (y * LEVEL_WIDTH + x) + 1
@@ -652,7 +637,7 @@ local function resetLevel(levelNumber)
     add(entities, Wall(120, 0, 8, 128))
     local wallDimensions = split(levelData.walls)
     -- #wallDimensions - 1 to account for trailing comma
-    for i=1,#wallDimensions - 1,4 do
+    for i=1, #wallDimensions - 1, 4 do
         add(entities, Wall(
             tonum(wallDimensions[i]),
             tonum(wallDimensions[i + 1]),
@@ -696,6 +681,9 @@ function updateGame()
     else
         showingText = false
         if levelCompleteTimer == 0 then
+            if currentLevel == #LEVELS then
+                sfx(54)
+            end
             saveLevelProgress(currentLevel, true, hasMedalForLevel())
         end
         -- Used for animating level complete banner
@@ -750,7 +738,7 @@ function drawHudText(text, x, y)
     print(text, x, y, 7)
 end
 
-local SIGN_LINE_LENGTH = 92
+SIGN_LINE_LENGTH = 92
 function drawSignText(text)
     local words = split(text, ' ')
     local line = ''
@@ -768,27 +756,28 @@ function drawSignText(text)
 end
 
 
-local MEDAL_GET_TEXT = 'medal get!'
-local LEVEL_COMPLETE_TEXT = 'level complete'
-local NEXT_LEVEL_TEXT = '\x97 next level'
-local BACK_TO_SELECT_TEXT = '\x8e return to level select'
+MEDAL_GET_TEXT = 'medal get!'
+LEVEL_COMPLETE_TEXT = 'level complete'
+ESCAPE_COMPLETE_TEXT = 'escape complete'
+NEXT_LEVEL_TEXT = '\x97 next level'
+BACK_TO_SELECT_TEXT = '\x8e return to level select'
 function drawHud()
-    drawHudText('Lev. '..tostr(currentLevel), 8, 14 * 8 + 5)
+    drawHudText('Lev. '..tostr(currentLevel), 8, 117)
     palt(14, true)
     palt(0, false)
-    spr(35, 40, 14 * 8 + 4)
-    spr(36, 68, 14 * 8 + 4)
+    spr(35, 40, 116)
+    spr(36, 68, 116)
     palt(14, false)
     palt(0, true)
-    spr(29, 96, 14 * 8 + 4)
-    drawHudText('x'..tostr(player.bullets), 52, 14 * 8 + 5)
+    spr(29, 96, 116)
+    drawHudText('x'..tostr(player.bullets), 52, 117)
     local medalBullets = LEVELS[currentLevel].medalBullets - (LEVELS[currentLevel].maxBullets - player.bullets)
     local medalText = 'x'..tostr(medalBullets)
     if medalBullets <= 0 then
         medalText = '-'
     end
-    drawHudText(medalText, 80, 14 * 8 + 5)
-    drawHudText('x'..tostr(getActiveGates()), 108, 14 * 8 + 5)
+    drawHudText(medalText, 80, 117)
+    drawHudText('x'..tostr(getActiveGates()), 108, 117)
 
     if showingText then
         rectfill(14, 14, 113, 97, 11)
@@ -800,19 +789,32 @@ function drawHud()
     -- Show animated level complete banner...if level is complete.
     if isLevelComplete() then
         local bannerClipProgress = levelCompleteTimer/LEVEL_COMPLETE_TIMER_MAX
+        local isLastLevel = currentLevel == #LEVELS
+
+        if isLastLevel then
+            -- show shaft of light
+            clip(108 - 12 * bannerClipProgress, 0, 24 * bannerClipProgress, 128)
+            fillp('0b0101101001011010.1')
+            rectfill(0, 0, 127, 15, 7)
+            fillp()
+            rectfill(0, 0, 127, 7, 7)
+            clip()
+        end
+
         clip(0, 47, 128, 60 * bannerClipProgress)
         rectfill(0, 47, 127, 57, 0)
-        printCentre(LEVEL_COMPLETE_TEXT, 50, 7)
         if hasMedalForLevel() then
             rectfill(0, 59, 127, 69, 0)
             printCentre(MEDAL_GET_TEXT, 62, 10)
         end
 
-        if currentLevel < #LEVELS then
+        if not isLastLevel then
+            printCentre(LEVEL_COMPLETE_TEXT, 50, 7)
             rectfill(0, 72, 127, 95, 0)
             printCentre(NEXT_LEVEL_TEXT, 78, 7)
             printCentre(BACK_TO_SELECT_TEXT, 86, 7)
         else
+            printCentre(ESCAPE_COMPLETE_TEXT, 50, 7)
             rectfill(0, 72, 127, 87, 0)
             printCentre(BACK_TO_SELECT_TEXT, 78, 7)
         end
@@ -824,8 +826,8 @@ function drawTransition()
     -- Draw concentric circles of different fill gradients to give
     -- illusion of fading circle edge.
     if levelTransitionTimer > 0 then
-        local radiusRatio = ((LEVEL_TRANSITION_TIMER_MAX/2) - abs(levelTransitionTimer - LEVEL_TRANSITION_TIMER_MAX/2))/(LEVEL_TRANSITION_TIMER_MAX/2)
-        local radius = 128 * radiusRatio
+        radiusRatio = (LEVEL_TRANSITION_TIMER_MAX_HALF - abs(levelTransitionTimer - LEVEL_TRANSITION_TIMER_MAX_HALF))/LEVEL_TRANSITION_TIMER_MAX_HALF
+        radius = 128 * radiusRatio
         fillp('0b0111111101111111.1')
         circfill(64, 64, radius, 0)
         if radius > 8 then
@@ -849,13 +851,12 @@ function drawTransition()
 end
 
 function drawGame()
-    cls()
     camera(cameraShake * (rnd(4) - 2), cameraShake * (rnd(4) - 2))
     map(0, 0, 0, 0, 16, 16)
     -- special case to superimpose arrows on level for first level
     if currentLevel == 1 then
-        print('\x8b', 2 * 8 - 3, 12 * 8 + 1, 7)
-        print('\x91', 4 * 8 + 5, 12 * 8 + 1, 7)
+        print('\x8b', 13, 97, 7)
+        print('\x91', 37, 97, 7)
 
         spr(134, 36, 84)
         print('you', 46, 80, 7)
@@ -882,10 +883,12 @@ function initTitle()
     add(entities, Wall(160, 160, 192, 8))
     add(entities, Wall(24, 48, 80, 32))
     menuitem(1)
+    titleTimer = 0
 end
 
 function updateTitle()
-    if levelTransitionTimer == 0 and btnp(5) and titleTimer > TITLE_TIMER_MAX then
+    titleTimer = titleTimer + 1
+    if levelTransitionTimer == 0 and btnp(5) then
         sfx(63)
         levelTransitionTimer = LEVEL_TRANSITION_TIMER_MAX
         levelTransitionCallback = (function ()
@@ -895,7 +898,6 @@ function updateTitle()
     end
     if #bullets < 4 and rnd() < 0.1 then
         local side = rnd()
-        local bulletX, bulletY
         if side < 0.25 then
             -- left
             bulletX = -16
@@ -924,27 +926,25 @@ function updateTitle()
     end)
 end
 
-local pressStartText = 'press \x97 to play'
-local pressStartColors = { 0, 5, 6, 7, 6, 5, 0 }
+pressStartText = 'press \x97 to play'
+pressStartColors = { 0, 5, 6, 7, 6, 5, 0 }
 function drawTitle()
-    cls()
     map(0, 16, 0, 0, 16, 16)
-    spr(80, 24, 6.5 * 8, 10, 3)
+    spr(80, 24, 52, 10, 3)
     foreach(bullets, drawSelf)
     foreach(entities, drawSelf)
 
     local textColor = pressStartColors[flr(titleTimer/8) % #pressStartColors + 1]
-    printCentre(pressStartText, 11 * 8, textColor)
+    printCentre(pressStartText, 88, textColor)
 
     printCentre(VERSION, 122, 0)
     printCentre(VERSION, 121, 7)
 end
 
-local SELECT_TIMER_MAX = 240
-local cursorX = 0
-local cursorY = 0
-local selectTimer
-local selectWidth = 5
+SELECT_TIMER_MAX = 240
+cursorX = 0
+cursorY = 0
+selectWidth = 5
 
 function initSelect()
     selectTimer = 0
@@ -966,6 +966,11 @@ function updateSelect()
         elseif btnp(3) then
             cursorY = cursorY + 1
             sfx(62)
+        end
+        if cursorX >= selectWidth then
+            cursorY = cursorY + 1
+        elseif cursorX < 0 then
+            cursorY = cursorY - 1
         end
         cursorX = cursorX % selectWidth
         cursorY = cursorY % selectWidth
@@ -999,9 +1004,8 @@ function drawLevelIcon(x, y, levelNumber, isSelected, isComplete, hasMedal)
     print(levelNumber, x + (16 - #levelNumber * 4)/2, y + 6, 7)
 end
 
-local LEVEL_SELECT_TEXT = 'select level'
+LEVEL_SELECT_TEXT = 'select level'
 function drawSelect()
-    cls()
     camera(0, selectTimer/SELECT_TIMER_MAX * 128)
     map(16, 0, 0, 0)
     camera()
@@ -1022,31 +1026,86 @@ function drawSelect()
     end
 end
 
+introTimer = 0
+LOGO_TIMER_MAX = 120
+INTRO_TIMER_MAX = 300
+STORY_TIMER_MAX = INTRO_TIMER_MAX - LOGO_TIMER_MAX
+
+function updateIntro()
+    introTimer = introTimer + 1
+    if levelTransitionTimer == 0 and introTimer >= INTRO_TIMER_MAX or btnp(5) or btnp(4) then
+        levelTransitionTimer = LEVEL_TRANSITION_TIMER_MAX
+        levelTransitionCallback = (function ()
+            state = STATES.TITLE
+            initTitle()
+        end)
+    end
+end
+
+introColors = { 0, 5, 6, 7 }
+function drawIntro()
+    if introTimer < LOGO_TIMER_MAX then
+        if introTimer < LOGO_TIMER_MAX - 16 and introTimer > 16 then
+            introIndex = 16
+        elseif introTimer >= LOGO_TIMER_MAX - 16 then
+            introIndex = LOGO_TIMER_MAX - introTimer
+        else
+            introIndex = introTimer
+        end
+
+        textColor = introColors[ceil(introIndex/4)]
+        printCentre('ruairidx', 61, textColor)
+    elseif introTimer < INTRO_TIMER_MAX then
+        storyTimer = introTimer - LOGO_TIMER_MAX
+        
+        if storyTimer < STORY_TIMER_MAX - 16 and storyTimer > 16 then
+            introIndex = 16
+        elseif storyTimer >= STORY_TIMER_MAX - 16 then
+            introIndex = STORY_TIMER_MAX - storyTimer
+        else
+            introIndex = storyTimer
+        end
+
+        textColor = introColors[ceil(introIndex/4)]
+        printCentre('imprisoned beneath', 16, textColor)
+        printCentre('the earth...', 24, textColor)
+        printCentre('only your wile and', 48, textColor)
+        printCentre('a plasma pistol for company', 56, textColor)
+        clip(0, 68, 128, introIndex)
+        palt(14, true)
+        palt(0, false)
+        spr(128 + flr(introTimer/4) % 4, 60, 68, 1, 2)
+        palt(14, false)
+        palt(0, true)
+        clip()
+        printCentre('however will you escape?', 96, textColor)
+    end
+end
+
 function _init()
     -- Disable button repeating
     poke(0x5f5c, 255)
     cartdata('ruairidx_propulsion_0')
     music(0, 2000)
-    titleTimer = 0
-    levelTransitionTimer = LEVEL_TRANSITION_TIMER_MAX/2
+    levelTransitionTimer = 0
 
-    state = STATES.TITLE
-    initTitle()
+    state = STATES.INTRO
+
+    -- poke(0x5f2f, 1)
 end
 
+updateFunctions = {
+    GAME = updateGame,
+    TITLE = updateTitle,
+    SELECT = updateSelect,
+    INTRO = updateIntro,
+}
 function _update60()
-    if state == STATES.GAME then
-        updateGame()
-    elseif state == STATES.TITLE then
-        updateTitle()
-    elseif state == STATES.SELECT then
-        updateSelect()
-    end
+    updateFunctions[state]()
 
-    titleTimer = titleTimer + 1
-    if titleTimer > TITLE_TIMER_MAX and levelTransitionTimer > 0 then
+    if levelTransitionTimer > 0 then
         levelTransitionTimer = levelTransitionTimer - 1
-        if levelTransitionTimer == LEVEL_TRANSITION_TIMER_MAX/2 then
+        if levelTransitionTimer == LEVEL_TRANSITION_TIMER_MAX_HALF then
             if levelTransitionCallback then
                 levelTransitionCallback()
                 levelTransitionCallback = nil
@@ -1055,26 +1114,15 @@ function _update60()
     end
 end
 
+drawFunctions = {
+    GAME = drawGame,
+    TITLE = drawTitle,
+    SELECT = drawSelect,
+    INTRO = drawIntro,
+}
 function _draw()
-    if state == STATES.GAME then
-        drawGame()
-    elseif state == STATES.TITLE then
-        drawTitle()
-    elseif state == STATES.SELECT then
-        drawSelect()
-    end
+    cls()
+    drawFunctions[state]()
     drawTransition()
-
-    if titleTimer < TITLE_TIMER_MAX then
-        local textColor = 7
-        if titleTimer > TITLE_TIMER_MAX - 16 or titleTimer < 8 then
-            textColor = 0
-        elseif titleTimer > TITLE_TIMER_MAX - 20 or titleTimer < 12 then
-            textColor = 5
-        elseif titleTimer > TITLE_TIMER_MAX - 24 or titleTimer < 16 then
-            textColor = 6
-        end
-        printCentre('ruairidx', 61, textColor)
-    end
 end
 -- END MAIN
