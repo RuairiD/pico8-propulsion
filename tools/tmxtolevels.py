@@ -53,7 +53,6 @@ def convert_tiles(map_root):
         return
 
     output = "tiles = \""
-    # Start at 1 since maps are 14 high but vertically centered.
     for y in range(0, HEIGHT):
         lineout = ""
         tiles_line = map_tiles_text.splitlines()[y + 1]
