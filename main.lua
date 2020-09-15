@@ -50,6 +50,11 @@ function saveLevelProgress(levelNumber, isComplete, hasMedal)
     dset(levelNumber - 1, data)
 end
 
+function startTransition(callback)
+    levelTransitionTimer = LEVEL_TRANSITION_TIMER_MAX
+    levelTransitionCallback = callback
+end
+
 Entity = Object:extend()
 
 function Entity:new(x, y, width, height)
@@ -656,9 +661,14 @@ function initGame(initLevel)
     currentLevel = initLevel or 1
     resetLevel(currentLevel)
     menuitem(1, "reset level", (function ()
-        levelTransitionTimer = LEVEL_TRANSITION_TIMER_MAX
-        levelTransitionCallback = (function ()
+        startTransition(function ()
             resetLevel(currentLevel)
+        end)
+    end))
+    menuitem(2, "level select", (function ()
+        startTransition(function ()
+            state = STATES.SELECT
+            initSelect()
         end)
     end))
 end
@@ -677,8 +687,7 @@ function updateGame()
 
         -- Reset level
         if #bullets == 0 and player.bullets == 0 and levelTransitionTimer == 0 then
-            levelTransitionTimer = LEVEL_TRANSITION_TIMER_MAX
-            levelTransitionCallback = (function ()
+            startTransition(function ()
                 resetLevel(currentLevel)
             end)
         end
@@ -697,15 +706,13 @@ function updateGame()
         if levelTransitionTimer == 0 then
             if btnp(5) and currentLevel < #LEVELS then
                 sfx(63)
-                levelTransitionTimer = LEVEL_TRANSITION_TIMER_MAX
-                levelTransitionCallback = (function ()
+                startTransition(function ()
                     currentLevel = currentLevel + 1
                     resetLevel(currentLevel)
                 end)
             elseif btnp(4) then
                 sfx(63)
-                levelTransitionTimer = LEVEL_TRANSITION_TIMER_MAX
-                levelTransitionCallback = (function ()
+                startTransition(function ()
                     state = STATES.SELECT
                     initSelect()
                 end)
@@ -888,7 +895,6 @@ function initTitle()
     add(entities, Wall(160, -32, 8, 192))
     add(entities, Wall(160, 160, 192, 8))
     add(entities, Wall(24, 48, 80, 32))
-    menuitem(1)
     titleTimer = 0
 end
 
@@ -896,8 +902,7 @@ function updateTitle()
     titleTimer = titleTimer + 1
     if levelTransitionTimer == 0 and btnp(5) then
         sfx(63)
-        levelTransitionTimer = LEVEL_TRANSITION_TIMER_MAX
-        levelTransitionCallback = (function ()
+        startTransition(function ()
             state = STATES.SELECT
             initSelect()
         end)
@@ -954,6 +959,7 @@ selectWidth = 5
 
 function initSelect()
     selectTimer = 0
+    menuitem(2)
     menuitem(1)
 end
 
@@ -983,8 +989,7 @@ function updateSelect()
 
         if (btnp(5) or btnp(4)) then
             sfx(63)
-            levelTransitionTimer = LEVEL_TRANSITION_TIMER_MAX
-            levelTransitionCallback = (function ()
+            startTransition(function ()
                 state = STATES.GAME
                 initGame(cursorY * selectWidth + cursorX + 1)
             end)
@@ -1040,8 +1045,7 @@ STORY_TIMER_MAX = INTRO_TIMER_MAX - LOGO_TIMER_MAX
 function updateIntro()
     introTimer = introTimer + 1
     if levelTransitionTimer == 0 and introTimer >= INTRO_TIMER_MAX or btnp(5) or btnp(4) then
-        levelTransitionTimer = LEVEL_TRANSITION_TIMER_MAX
-        levelTransitionCallback = (function ()
+        startTransition(function ()
             state = STATES.TITLE
             initTitle()
         end)
