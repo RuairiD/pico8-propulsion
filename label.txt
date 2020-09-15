@@ -1,2 +1,2 @@
--- Propulsion v0.3.0
+-- Propulsion v0.4.0
 -- Ruairi Dorrity
