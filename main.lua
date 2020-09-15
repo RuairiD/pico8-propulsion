@@ -1,4 +1,4 @@
-local VERSION = 'v0.1.0'
+local VERSION = 'v0.2.0'
 local LEVEL_WIDTH = 16
 local LEVEL_HEIGHT = 14
 local GRAVITY = 0.125
