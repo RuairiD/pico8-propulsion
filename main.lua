@@ -14,6 +14,17 @@ STATES = {
     SELECT = 'SELECT',
 }
 
+function setPinkTransparent()
+    palt(14, true)
+    palt(0, false)
+end
+
+
+function setBlackTransparent()
+    palt(14, false)
+    palt(0, true)
+end
+
 function printCentre(text, y, color)
     print(text, (128 - #text * 4)/2, y, color)
 end
@@ -147,11 +158,9 @@ function Sign:new(x, y, text)
 end
 
 function Sign:draw()
-    palt(14, true)
-    palt(0, false)
+    setPinkTransparent()
     spr(13, self.x, self.y)
-    palt(14, false)
-    palt(0, true)
+    setBlackTransparent()
     -- Fuzzy screen
     fillp(flr(rnd(0x8000)))
     rectfill(self.x + 1, self.y + 1, self.x + 6, self.y + 4, 11)
@@ -460,9 +469,6 @@ function Player:update()
         self.onGround = false
     end
 
-    -- Check collisions from player movement. We can ignore the wall collisions (except for
-    -- controlling gravity) since bump has already handled them, but coin collisions are
-    -- still important.
     self.shownSign = nil
     for _, collision in ipairs(collisions) do
         if collision.other:is(Wall) then
@@ -497,8 +503,7 @@ end
 LINE_BUFFER = 10
 LINE_LENGTH = 64
 function Player:draw()
-    palt(14, true)
-    palt(0, false)
+    setPinkTransparent()
     local movingLeft = self.angle > 0.25 and self.angle < 0.75
     if self.onGround then
         spr(128 + flr(self.walkFrame / 3), self.x, self.y - 8, 1, 2, movingLeft)
@@ -509,8 +514,7 @@ function Player:draw()
             spr(133, self.x, self.y - 8, 1, 2, movingLeft)
         end
     end
-    palt(14, false)
-    palt(0, true)
+    setBlackTransparent()
     local lineColorCode = 7
     if btn(5) then
         lineColorCode = 10
@@ -763,12 +767,10 @@ NEXT_LEVEL_TEXT = '\x97 next level'
 BACK_TO_SELECT_TEXT = '\x8e return to level select'
 function drawHud()
     drawHudText('Lev. '..tostr(currentLevel), 8, 117)
-    palt(14, true)
-    palt(0, false)
+    setPinkTransparent()
     spr(35, 40, 116)
     spr(36, 68, 116)
-    palt(14, false)
-    palt(0, true)
+    setBlackTransparent()
     spr(29, 96, 116)
     drawHudText('x'..tostr(player.bullets), 52, 117)
     local medalBullets = LEVELS[currentLevel].medalBullets - (LEVELS[currentLevel].maxBullets - player.bullets)
@@ -794,8 +796,12 @@ function drawHud()
         if isLastLevel then
             -- show shaft of light
             clip(108 - 12 * bannerClipProgress, 0, 24 * bannerClipProgress, 128)
+            fillp('0b0111111111011111.1')
+            rectfill(0, 20, 127, 25, 7)
+            fillp('0b0111110101111101.1')
+            rectfill(0, 14, 127, 19, 7)
             fillp('0b0101101001011010.1')
-            rectfill(0, 0, 127, 15, 7)
+            rectfill(0, 8, 127, 13, 7)
             fillp()
             rectfill(0, 0, 127, 7, 7)
             clip()
@@ -1070,11 +1076,9 @@ function drawIntro()
         printCentre('only your wit, guile and', 48, textColor)
         printCentre('a plasma pistol for company', 56, textColor)
         clip(0, 68, 128, introIndex)
-        palt(14, true)
-        palt(0, false)
+        setPinkTransparent()
         spr(128 + flr(introTimer/4) % 4, 60, 68, 1, 2)
-        palt(14, false)
-        palt(0, true)
+        setBlackTransparent()
         clip()
         printCentre('however will you escape?', 96, textColor)
     end
