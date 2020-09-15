@@ -588,15 +588,6 @@ function Platform:draw()
     end
 end
 
-local function isInTable(x, xs)
-    for cx in all(xs) do
-        if x == cx then
-            return true
-        end
-    end
-    return false
-end
-
 local function getActiveGates()
     local count = 0
     for lock in all(locks) do

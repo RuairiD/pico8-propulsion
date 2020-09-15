@@ -17,7 +17,6 @@ LEVELS = [
     'maps/level3.tmx', # 2
     'maps/level6.tmx', # 3
     'maps/level7.tmx', # 3
-    'maps/level23.tmx', # 4
     # Introduce fences
     'maps/demo2.tmx', # 2
     'maps/level4.tmx', # 2
@@ -25,6 +24,7 @@ LEVELS = [
     'maps/level18.tmx', # 2
     'maps/level8.tmx', # 3
     'maps/level9.tmx', # 3
+    'maps/level23.tmx', # 4 - no fences but feels too hard to put earlier
     'maps/level11.tmx', # 3
     'maps/level12.tmx', # 3
     'maps/level21.tmx', # 4

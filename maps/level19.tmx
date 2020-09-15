@@ -35,24 +35,24 @@
   <object id="2" type="LOCK" x="80" y="48" width="8" height="8"/>
   <object id="25" type="LOCK" x="40" y="24" width="8" height="8"/>
   <object id="37" type="LOCK" x="60" y="72" width="8" height="8"/>
-  <object id="38" type="PLATFORM" x="40" y="32" width="24" height="8">
+  <object id="38" type="PLATFORM" x="36" y="32" width="16" height="8">
    <properties>
     <property name="isVertical" type="bool" value="false"/>
-    <property name="maxPos" type="int" value="72"/>
+    <property name="maxPos" type="int" value="80"/>
     <property name="minPos" type="int" value="32"/>
    </properties>
   </object>
-  <object id="39" type="PLATFORM" x="64" y="56" width="24" height="8">
+  <object id="39" type="PLATFORM" x="56" y="56" width="16" height="8">
    <properties>
     <property name="isVertical" type="bool" value="false"/>
-    <property name="maxPos" type="int" value="72"/>
+    <property name="maxPos" type="int" value="80"/>
     <property name="minPos" type="int" value="32"/>
    </properties>
   </object>
-  <object id="40" type="PLATFORM" x="52" y="80" width="24" height="8">
+  <object id="40" type="PLATFORM" x="76" y="80" width="16" height="8">
    <properties>
     <property name="isVertical" type="bool" value="false"/>
-    <property name="maxPos" type="int" value="72"/>
+    <property name="maxPos" type="int" value="80"/>
     <property name="minPos" type="int" value="32"/>
    </properties>
   </object>
