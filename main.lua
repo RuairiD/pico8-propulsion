@@ -1,4 +1,4 @@
-VERSION = 'v0.2.1'
+VERSION = 'v0.3.0'
 LEVEL_WIDTH = 16
 LEVEL_HEIGHT = 14
 GRAVITY = 0.125
@@ -1069,7 +1069,7 @@ function drawIntro()
         textColor = introColors[ceil(introIndex/4)]
         printCentre('imprisoned beneath', 16, textColor)
         printCentre('the earth...', 24, textColor)
-        printCentre('only your wile and', 48, textColor)
+        printCentre('only your wit, guile and', 48, textColor)
         printCentre('a plasma pistol for company', 56, textColor)
         clip(0, 68, 128, introIndex)
         palt(14, true)
