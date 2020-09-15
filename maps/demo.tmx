@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.4" tiledversion="1.4.2" orientation="orthogonal" renderorder="right-down" width="16" height="14" tilewidth="8" tileheight="8" infinite="0" nextlayerid="4" nextobjectid="28">
+<map version="1.4" tiledversion="1.4.2" orientation="orthogonal" renderorder="right-down" width="16" height="14" tilewidth="8" tileheight="8" infinite="0" nextlayerid="4" nextobjectid="29">
  <properties>
   <property name="maxBullets" type="int" value="2"/>
   <property name="medalBullets" type="int" value="1"/>
@@ -46,5 +46,10 @@
   </object>
   <object id="23" type="FENCE" x="32" y="8" width="8" height="64"/>
   <object id="27" type="FENCE" x="8" y="80" width="24" height="8"/>
+  <object id="28" type="SIGN" x="64" y="96" width="8" height="8">
+   <properties>
+    <property name="text" value="if life's getting you down, press \x94 to put some spring in your step."/>
+   </properties>
+  </object>
  </objectgroup>
 </map>

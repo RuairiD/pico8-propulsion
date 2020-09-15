@@ -1045,12 +1045,11 @@ end
 introColors = { 0, 5, 6, 7 }
 function drawIntro()
     if introTimer < LOGO_TIMER_MAX then
+        introIndex = introTimer
         if introTimer < LOGO_TIMER_MAX - 16 and introTimer > 16 then
             introIndex = 16
         elseif introTimer >= LOGO_TIMER_MAX - 16 then
             introIndex = LOGO_TIMER_MAX - introTimer
-        else
-            introIndex = introTimer
         end
 
         textColor = introColors[ceil(introIndex/4)]
@@ -1058,12 +1057,11 @@ function drawIntro()
     elseif introTimer < INTRO_TIMER_MAX then
         storyTimer = introTimer - LOGO_TIMER_MAX
         
+        introIndex = storyTimer
         if storyTimer < STORY_TIMER_MAX - 16 and storyTimer > 16 then
             introIndex = 16
         elseif storyTimer >= STORY_TIMER_MAX - 16 then
             introIndex = STORY_TIMER_MAX - storyTimer
-        else
-            introIndex = storyTimer
         end
 
         textColor = introColors[ceil(introIndex/4)]
