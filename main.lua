@@ -488,7 +488,6 @@ function Player:update()
                 if collision.other:is(Platform) then
                     self.x, self.y, _, _ = bumpWorld:move(
                         self,
-                        -- *2 to account for player only hitting platform every other frame
                         self.x + collision.other.velX * collision.other.direction,
                         self.y + collision.other.velY * collision.other.direction,
                         self.moveFilter
