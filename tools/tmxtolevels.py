@@ -10,6 +10,7 @@ WALL_FORMAT =  "{x}, {y}, {width}, {height}"
 # Levels are rated out of 5; 1 is easy, 5 is hard.
 LEVELS = [
     'maps/level1.tmx', # 1
+    'maps/leveldiagonal.tmx', # 1
     # Introduce bouncing.
     'maps/level2.tmx', # 1
     'maps/level5.tmx', # 2
@@ -32,7 +33,6 @@ LEVELS = [
     # Introduce platforms
     'maps/level13.tmx', # 2
     'maps/level14.tmx', # 3
-    'maps/level17.tmx', # 3
     'maps/level19.tmx', # 3
     'maps/level22.tmx', # 3
     'maps/level16.tmx', # 3

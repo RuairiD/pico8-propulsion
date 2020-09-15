@@ -1074,7 +1074,7 @@ function _draw()
         elseif titleTimer > TITLE_TIMER_MAX - 24 or titleTimer < 16 then
             textColor = 6
         end
-        print('ruairidx', 50, 61, textColor)
+        printCentre('ruairidx', 61, textColor)
     end
 end
 -- END MAIN
