@@ -754,17 +754,17 @@ local SIGN_LINE_LENGTH = 92
 function drawSignText(text)
     local words = split(text, ' ')
     local line = ''
-    local y = 35
+    local y = 33
     for word in all(words) do
         if #(line..word) * 4 < SIGN_LINE_LENGTH then
             line = line..word.." "
         else
-            print(line, 19, y, 11)
+            print(line, 17, y, 11)
             line = word.." "
             y = y + 8
         end
     end
-    print(line, 19, y, 11)
+    print(line, 17, y, 11)
 end
 
 
@@ -791,9 +791,9 @@ function drawHud()
     drawHudText('x'..tostr(getActiveGates()), 108, 14 * 8 + 5)
 
     if showingText then
-        rectfill(16, 16, 111, 95, 7)
-        rectfill(17, 17, 110, 94, 0)
-        printCentre('info', 22, 11)
+        rectfill(14, 14, 113, 97, 11)
+        rectfill(15, 15, 112, 96, 0)
+        printCentre('info', 20, 11)
         drawSignText(player.shownSign.text)
     end
 
@@ -953,29 +953,31 @@ end
 
 function updateSelect()
     selectTimer = (selectTimer + 1) % SELECT_TIMER_MAX
-    if btnp(0) then
-        cursorX = cursorX - 1
-        sfx(62)
-    elseif btnp(1) then
-        cursorX = cursorX + 1
-        sfx(62)
-    elseif btnp(2) then
-        cursorY = cursorY - 1
-        sfx(62)
-    elseif btnp(3) then
-        cursorY = cursorY + 1
-        sfx(62)
-    end
-    cursorX = cursorX % selectWidth
-    cursorY = cursorY % selectWidth
+    if levelTransitionTimer == 0 then
+        if btnp(0) then
+            cursorX = cursorX - 1
+            sfx(62)
+        elseif btnp(1) then
+            cursorX = cursorX + 1
+            sfx(62)
+        elseif btnp(2) then
+            cursorY = cursorY - 1
+            sfx(62)
+        elseif btnp(3) then
+            cursorY = cursorY + 1
+            sfx(62)
+        end
+        cursorX = cursorX % selectWidth
+        cursorY = cursorY % selectWidth
 
-    if levelTransitionTimer == 0 and (btnp(5) or btnp(4)) then
-        sfx(63)
-        levelTransitionTimer = LEVEL_TRANSITION_TIMER_MAX
-        levelTransitionCallback = (function ()
-            state = STATES.GAME
-            initGame(cursorY * selectWidth + cursorX + 1)
-        end)
+        if (btnp(5) or btnp(4)) then
+            sfx(63)
+            levelTransitionTimer = LEVEL_TRANSITION_TIMER_MAX
+            levelTransitionCallback = (function ()
+                state = STATES.GAME
+                initGame(cursorY * selectWidth + cursorX + 1)
+            end)
+        end
     end
 end
 
@@ -1023,7 +1025,7 @@ end
 function _init()
     -- Disable button repeating
     poke(0x5f5c, 255)
-    cartdata('propulsion')
+    cartdata('ruairidx_propulsion_0')
     music(0, 2000)
     titleTimer = 0
     levelTransitionTimer = LEVEL_TRANSITION_TIMER_MAX/2
