@@ -1,4 +1,4 @@
-VERSION = 'v0.4.0'
+VERSION = 'v1.0.0'
 LEVEL_WIDTH = 16
 LEVEL_HEIGHT = 14
 GRAVITY = 0.125
@@ -1090,7 +1090,7 @@ end
 function _init()
     -- Disable button repeating
     poke(0x5f5c, 255)
-    cartdata('ruairidx_propulsion_0')
+    cartdata('ruairidx_propulsion_1')
     music(0, 2000)
     levelTransitionTimer = 0
 
